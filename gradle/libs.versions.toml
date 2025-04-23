@@ -1,6 +1,6 @@
 [versions]
 agp = "8.9.0"
-kotlin = "2.0.21"
+kotlin = "2.0.0" # Update to stable Kotlin version
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -12,7 +12,7 @@ room = "2.6.1" # Add Room version
 navigationCompose = "2.7.7" # Add Navigation Compose version
 lifecycle = "2.8.7" # Use existing lifecycle version for viewmodel-compose etc.
 coroutines = "1.8.1" # Add Coroutines version
-ksp = "2.0.21-1.0.16" # Add KSP version (aligned with Kotlin)
+ksp = "2.0.0-1.0.21" # KSP version for Kotlin 2.0.0
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
