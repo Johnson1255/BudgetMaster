@@ -14,7 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
-import com.senlin.budgetmaster.ui.ViewModelFactory
+import com.senlin.budgetmaster.ui.AppViewModelProvider // Import AppViewModelProvider
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -22,7 +22,7 @@ import java.util.*
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
-    viewModel: DashboardViewModel = viewModel(factory = ViewModelFactory()) // Assuming ViewModelFactory is setup
+    viewModel: DashboardViewModel = viewModel(factory = AppViewModelProvider.Factory) // Use correct factory
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

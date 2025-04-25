@@ -1,6 +1,7 @@
 package com.senlin.budgetmaster
 
 import android.app.Application
+import android.content.Context
 import com.senlin.budgetmaster.data.db.AppDatabase
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import com.senlin.budgetmaster.data.repository.OfflineBudgetRepository

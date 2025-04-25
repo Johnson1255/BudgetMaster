@@ -22,23 +22,43 @@ class OfflineBudgetRepository(
         transactionDao.getTransactionsBetweenDates(startDate, endDate)
     override fun getTransactionsByCategoryId(categoryId: Long): Flow<List<Transaction>> =
         transactionDao.getTransactionsByCategoryId(categoryId)
-    override suspend fun insertTransaction(transaction: Transaction) = transactionDao.insertTransaction(transaction)
-    override suspend fun updateTransaction(transaction: Transaction) = transactionDao.updateTransaction(transaction)
-    override suspend fun deleteTransaction(transaction: Transaction) = transactionDao.deleteTransaction(transaction)
+    override suspend fun insertTransaction(transaction: Transaction) {
+        transactionDao.insertTransaction(transaction)
+    }
+    override suspend fun updateTransaction(transaction: Transaction) {
+        transactionDao.updateTransaction(transaction)
+    }
+    override suspend fun deleteTransaction(transaction: Transaction) {
+        transactionDao.deleteTransaction(transaction)
+    }
 
     // Category Operations
     override fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
     override fun getCategoryById(id: Long): Flow<Category?> = categoryDao.getCategoryById(id)
     override fun getCategoryByName(name: String): Flow<Category?> = categoryDao.getCategoryByName(name)
-    override suspend fun insertCategory(category: Category) = categoryDao.insertCategory(category)
-    override suspend fun updateCategory(category: Category) = categoryDao.updateCategory(category)
-    override suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)
+    override suspend fun insertCategory(category: Category) {
+        categoryDao.insertCategory(category)
+    }
+    override suspend fun updateCategory(category: Category) {
+        categoryDao.updateCategory(category)
+    }
+    override suspend fun deleteCategory(category: Category) {
+        categoryDao.deleteCategory(category)
+    }
 
     // Goal Operations
     override fun getAllGoals(): Flow<List<Goal>> = goalDao.getAllGoals()
     override fun getGoalById(id: Long): Flow<Goal?> = goalDao.getGoalById(id)
-    override suspend fun insertGoal(goal: Goal) = goalDao.insertGoal(goal)
-    override suspend fun updateGoal(goal: Goal) = goalDao.updateGoal(goal)
-    override suspend fun deleteGoal(goal: Goal) = goalDao.deleteGoal(goal)
-    override suspend fun updateGoalAmount(goalId: Long, newAmount: Double) = goalDao.updateGoalAmount(goalId, newAmount)
+    override suspend fun insertGoal(goal: Goal) {
+        goalDao.insertGoal(goal)
+    }
+    override suspend fun updateGoal(goal: Goal) {
+        goalDao.updateGoal(goal)
+    }
+    override suspend fun deleteGoal(goal: Goal) {
+        goalDao.deleteGoal(goal)
+    }
+    override suspend fun updateGoalAmount(goalId: Long, newAmount: Double) {
+        goalDao.updateGoalAmount(goalId, newAmount)
+    }
 }

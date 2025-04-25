@@ -24,11 +24,15 @@ object AppViewModelProvider {
             // Create the requested ViewModel instance
             // TODO: Add cases for each ViewModel as we create them
             if (modelClass.isAssignableFrom(com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel::class.java)) {
+                  @Suppress("UNCHECKED_CAST")
+                  return com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel(budgetRepository) as T
+             }
+             if (modelClass.isAssignableFrom(com.senlin.budgetmaster.ui.dashboard.DashboardViewModel::class.java)) {
                  @Suppress("UNCHECKED_CAST")
-                 return com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel(budgetRepository) as T
-            }
-            /*
-            if (modelClass.isAssignableFrom(AddEditTransactionViewModel::class.java)) {
+                 return com.senlin.budgetmaster.ui.dashboard.DashboardViewModel(budgetRepository) as T
+             }
+             /*
+             if (modelClass.isAssignableFrom(AddEditTransactionViewModel::class.java)) {
                  @Suppress("UNCHECKED_CAST")
                  return AddEditTransactionViewModel(budgetRepository) as T
             }
