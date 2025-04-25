@@ -4,8 +4,10 @@ sealed class Screen(val route: String) {
     object Dashboard : Screen("dashboard")
     object Transactions : Screen("transactions")
     object AddEditTransaction : Screen("add_edit_transaction") // Can take an optional transactionId argument
-    object Goals : Screen("goals")
-    object AddEditGoal : Screen("add_edit_goal") // Can take an optional goalId argument
+    object GoalList : Screen("goalList") // Renamed from Goals
+    object GoalEdit : Screen("goalEdit/{goalId}") { // Renamed and corrected route
+        fun createRoute(goalId: Long) = "goalEdit/$goalId"
+    }
     object Categories : Screen("categories") // For managing categories
     object Reports : Screen("reports")
 
@@ -37,6 +39,6 @@ sealed class Screen(val route: String) {
     // Define argument keys (optional but good practice)
     companion object {
         const val TRANSACTION_ID_ARG = "transactionId"
-        const val GOAL_ID_ARG = "goalId"
+        const val GOAL_ID_ARG = "goalId" // Ensure this matches the key in the route "goalEdit/{goalId}"
     }
 }

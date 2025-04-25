@@ -25,7 +25,7 @@ fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Dashboard", Icons.Filled.Dashboard, Screen.Dashboard.route),
         BottomNavItem("Transactions", Icons.Filled.AccountBalanceWallet, Screen.Transactions.route),
-        BottomNavItem("Goals", Icons.Filled.Savings, Screen.Goals.route),
+        BottomNavItem("Goals", Icons.Filled.Savings, Screen.GoalList.route), // Updated route
         BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route)
         // Add Categories here if desired, or keep it accessible from elsewhere
     )

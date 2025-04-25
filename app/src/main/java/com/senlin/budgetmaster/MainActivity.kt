@@ -13,12 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp // Import dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType // Import NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument // Import navArgument
 import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.ui.components.BottomNavigationBar // Import the bottom bar
 import com.senlin.budgetmaster.ui.dashboard.DashboardScreen // Import the Dashboard screen
+import com.senlin.budgetmaster.ui.goal.edit.GoalEditScreen // Import Goal Edit Screen
+import com.senlin.budgetmaster.ui.goal.list.GoalListScreen // Import Goal List Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 
@@ -63,9 +67,9 @@ fun AppNavHost(
         composable(Screen.Transactions.route) {
             TransactionListScreen(navController = navController) // Use the actual screen
         }
-        composable(Screen.Goals.route) {
-            // TODO: Replace with actual GoalsScreen composable
-            PlaceholderScreen("Goals Screen")
+        // Use GoalList route and screen
+        composable(Screen.GoalList.route) {
+            GoalListScreen(navController = navController)
         }
         composable(Screen.Reports.route) {
              // TODO: Replace with actual ReportsScreen composable
@@ -75,7 +79,14 @@ fun AppNavHost(
             // TODO: Replace with actual CategoriesScreen composable
             PlaceholderScreen("Categories Screen")
         }
-        // TODO: Add composable routes for Add/Edit screens with arguments later
+        // Add Goal Edit Screen route with argument
+        composable(
+            route = Screen.GoalEdit.route,
+            arguments = listOf(navArgument(Screen.GOAL_ID_ARG) { type = NavType.LongType })
+        ) {
+            GoalEditScreen(navController = navController)
+        }
+        // TODO: Add composable routes for Add/Edit Transaction screens with arguments later
         // Example: composable(Screen.AddEditTransaction.withArgs(Screen.TRANSACTION_ID_ARG)) { ... }
     }
 }
