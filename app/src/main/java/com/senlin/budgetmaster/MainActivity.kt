@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.ui.components.BottomNavigationBar // Import the bottom bar
+import com.senlin.budgetmaster.ui.dashboard.DashboardScreen // Import the Dashboard screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 
@@ -56,8 +57,7 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(Screen.Dashboard.route) {
-            // TODO: Replace with actual DashboardScreen composable
-            PlaceholderScreen("Dashboard Screen")
+            DashboardScreen(modifier = Modifier) // Use the actual Dashboard screen
         }
         composable(Screen.Transactions.route) {
             TransactionListScreen(navController = navController) // Use the actual screen
