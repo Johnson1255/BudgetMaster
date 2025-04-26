@@ -23,6 +23,7 @@ import com.senlin.budgetmaster.ui.components.BottomNavigationBar // Import the b
 import com.senlin.budgetmaster.ui.dashboard.DashboardScreen // Import the Dashboard screen
 import com.senlin.budgetmaster.ui.goal.edit.GoalEditScreen // Import Goal Edit Screen
 import com.senlin.budgetmaster.ui.goal.list.GoalListScreen // Import Goal List Screen
+import com.senlin.budgetmaster.ui.report.ReportScreen // Import Report Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 
@@ -72,8 +73,7 @@ fun AppNavHost(
             GoalListScreen(navController = navController)
         }
         composable(Screen.Reports.route) {
-             // TODO: Replace with actual ReportsScreen composable
-            PlaceholderScreen("Reports Screen")
+            ReportScreen(modifier = Modifier) // Use the actual Report screen
         }
         composable(Screen.Categories.route) {
             // TODO: Replace with actual CategoriesScreen composable

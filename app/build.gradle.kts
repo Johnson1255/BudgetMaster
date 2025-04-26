@@ -69,6 +69,10 @@ dependencies {
 
     // Coroutines (already included via lifecycle-runtime-ktx, but good to be explicit if needed elsewhere)
     implementation(libs.kotlinx.coroutines.android)
+
+    // Charts
+    implementation(libs.compose.charts)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
