@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.repository.BudgetRepository
+import com.senlin.budgetmaster.navigation.Screen // Import Screen
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -17,7 +18,8 @@ class GoalEditViewModel(
     private val budgetRepository: BudgetRepository
 ) : ViewModel() {
 
-    private val goalId: Long = checkNotNull(savedStateHandle["goalId"])
+    // Retrieve goalId directly as Long, defaulting to 0L if missing
+    private val goalId: Long = savedStateHandle.get<Long>(Screen.GOAL_ID_ARG) ?: 0L
 
     var goalUiState by mutableStateOf(GoalUiState())
         private set

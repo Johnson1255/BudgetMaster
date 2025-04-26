@@ -35,7 +35,7 @@ fun GoalListScreen(
             TopAppBar(title = { Text("Metas") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.GoalEdit.route + "/0") }) { // Navigate to create/edit screen with ID 0 for new goal
+            FloatingActionButton(onClick = { navController.navigate(Screen.GoalEdit.createRoute(0L)) }) { // Use createRoute for new goal (ID 0)
                 Icon(Icons.Filled.Add, contentDescription = "Agregar Meta")
             }
         }
@@ -44,7 +44,7 @@ fun GoalListScreen(
             modifier = Modifier.padding(paddingValues),
             goals = uiState.goalList,
             onEditClick = { goalId ->
-                navController.navigate(Screen.GoalEdit.route + "/$goalId")
+                navController.navigate(Screen.GoalEdit.createRoute(goalId)) // Use createRoute for editing existing goal
             },
             onDeleteClick = { goal ->
                 viewModel.deleteGoal(goal)
