@@ -87,7 +87,7 @@ fun GoalInputForm(
             onValueChange = { onValueChange(goalUiState.copy(targetAmount = it)) },
             label = { Text("Monto Objetivo") }, // Replace with stringResource(R.string.goal_target_amount_label)
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberDecimal),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true
         )
         // Add fields for currentAmount and targetDate if needed

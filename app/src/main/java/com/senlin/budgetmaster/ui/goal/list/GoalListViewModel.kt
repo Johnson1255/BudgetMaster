@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class GoalListViewModel(private val budgetRepository: BudgetRepository) : ViewModel() {
 
     val goalListUiState: StateFlow<GoalListUiState> =
-        budgetRepository.getAllGoalsStream()
+        budgetRepository.getAllGoals() // Correct method name
             .map { GoalListUiState(it) }
             .stateIn(
                 scope = viewModelScope,

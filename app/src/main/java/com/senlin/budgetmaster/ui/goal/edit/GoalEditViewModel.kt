@@ -25,7 +25,7 @@ class GoalEditViewModel(
     init {
         viewModelScope.launch {
             if (goalId > 0) {
-                goalUiState = budgetRepository.getGoalStream(goalId)
+                goalUiState = budgetRepository.getGoalById(goalId) // Correct method name
                     .filterNotNull()
                     .first()
                     .toGoalUiState(isEntryValid = true) // Assume valid initially when loading existing

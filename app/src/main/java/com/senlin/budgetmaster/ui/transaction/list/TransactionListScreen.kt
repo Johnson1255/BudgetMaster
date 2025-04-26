@@ -20,7 +20,7 @@ import androidx.navigation.NavController
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
 import com.senlin.budgetmaster.navigation.Screen
-import com.senlin.budgetmaster.ui.AppViewModelProvider
+import com.senlin.budgetmaster.ui.ViewModelFactory // Use ViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,7 +28,7 @@ import java.util.*
 fun TransactionListScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: TransactionListViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: TransactionListViewModel = viewModel(factory = ViewModelFactory.Factory) // Use correct factory
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
