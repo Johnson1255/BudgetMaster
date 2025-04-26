@@ -27,6 +27,7 @@ import com.senlin.budgetmaster.ui.ViewModelFactory
 import java.text.NumberFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class) // Add OptIn for experimental Material 3 APIs
 @Composable
 fun ReportScreen(
     modifier: Modifier = Modifier,
@@ -63,14 +64,15 @@ fun ReportContent(
 
     // Update producer when data changes
     LaunchedEffect(uiState.categoryExpenses) {
-        if (uiState.categoryExpenses.isNotEmpty()) {
-            chartEntryModelProducer.setEntries(
-                uiState.categoryExpenses.mapIndexed { index, expense ->
-                    entryOf(index.toFloat(), expense.totalAmount.toFloat())
-                }
-            )
+        val entries = uiState.categoryExpenses.mapIndexed { index, expense ->
+            entryOf(index.toFloat(), expense.totalAmount.toFloat())
+        }
+        if (entries.isNotEmpty()) {
+            // Explicitly cast to List<List<ChartEntry>> to resolve ambiguity
+            chartEntryModelProducer.setEntries(listOf(entries) as List<List<com.patrykandpatrick.vico.core.entry.ChartEntry>>) { /* empty lambda */ }
         } else {
-            chartEntryModelProducer.setEntries(emptyList()) // Clear entries if data is empty
+            // Explicitly cast empty list as well
+            chartEntryModelProducer.setEntries(emptyList<List<com.patrykandpatrick.vico.core.entry.ChartEntry>>()) { /* empty lambda */ }
         }
     }
 
@@ -82,21 +84,10 @@ fun ReportContent(
         currencyFormat.format(value)
     }
 
-    // Define Chart components (using remember for performance)
-    val columnChart = remember {
-        columnChart(
-            // Optional: Customize columns, e.g., using dynamic colors based on data
-            // columns = uiState.categoryExpenses.map { expense ->
-            //     LineComponent(
-            //         color = Color(expense.color).toArgb(), // Use category color
-            //         thicknessDp = 8f, // Adjust thickness
-            //         shape = Shapes.roundedCornerShape(allPercent = 40),
-            //     )
-            // }
-        )
-    }
-    val startAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter)
-    val bottomAxis = rememberBottomAxis(valueFormatter = bottomAxisValueFormatter)
+    // Define Chart components
+    val columnChart = columnChart() // Define outside remember
+    val startAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter) // Keep axes remembered
+    val bottomAxis = rememberBottomAxis(valueFormatter = bottomAxisValueFormatter) // Keep axes remembered
 
 
     Box(
@@ -146,33 +137,4 @@ fun ReportContent(
     }
 }
 
-// Remove the old Legend composable if it exists
-/*
-@Composable
-fun Legend(slices: List<PieChartData.Slice>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        slices.forEach { slice ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
-                Box(modifier = Modifier.size(16.dp).background(slice.color))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = slice.label ?: "Unknown") // Use label if available
-            }
-        }
-    }
-}
-
-// Optional: Simple Legend Composable (if needed)
-/*
-@Composable
-fun Legend(slices: List<PieChartData.Slice>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        slices.forEach { slice ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
-                Box(modifier = Modifier.size(16.dp).background(slice.color))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = slice.label ?: "Unknown") // Use label if available
-            }
-        }
-    }
-}
-*/
+// Removed commented-out Legend composables

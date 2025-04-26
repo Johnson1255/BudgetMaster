@@ -10,12 +10,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
+// Removed BigDecimal import
+import kotlin.math.abs // Import abs for Double
 
 data class CategoryExpense(
     val categoryName: String,
-    val totalAmount: BigDecimal,
-    val color: Long // Store color as Long (packed ARGB)
+    val totalAmount: Double // Change to Double
+    // Removed color property as it's not in the Category model
 )
 
 data class ReportUiState(
@@ -38,23 +39,27 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 // Combine flows to get both transactions and categories
-                repository.getAllTransactionsStream()
-                    .combine(repository.getAllCategoriesStream()) { transactions, categories ->
+                repository.getAllTransactions() // Corrected method name
+                    .combine(repository.getAllCategories()) { transactions, categories -> // Corrected method name
                         Pair(transactions, categories)
                     }
                     .collect { (transactions, categories) ->
                         val categoryMap = categories.associateBy { it.id }
                         val expensesByCategory = transactions
-                            .filter { it.amount < BigDecimal.ZERO } // Consider only expenses
+                            // Filter for Doubles (expenses are negative)
+                            .filter { transaction -> transaction.amount < 0.0 }
                             .groupBy { it.categoryId }
                             .mapNotNull { (categoryId, transactionsInCategory) ->
                                 val category = categoryMap[categoryId]
                                 if (category != null) {
-                                    val total = transactionsInCategory.sumOf { it.amount.abs() }
+                                    // Sum Doubles using fold and kotlin.math.abs
+                                    val total = transactionsInCategory.fold(0.0) { acc, transaction ->
+                                        acc + abs(transaction.amount) // Use abs() from kotlin.math
+                                    }
                                     CategoryExpense(
                                         categoryName = category.name,
-                                        totalAmount = total,
-                                        color = category.color // Use color from Category
+                                        totalAmount = total
+                                        // Removed color assignment
                                     )
                                 } else {
                                     // Handle transactions with no category or deleted category if necessary
