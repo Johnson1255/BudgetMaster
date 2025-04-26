@@ -68,7 +68,7 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
         } else {
             items(uiState.recentTransactions) { transaction ->
                 TransactionItem(transaction = transaction)
-                Divider() // Add a divider between items
+                HorizontalDivider() // Add a divider between items
             }
         }
 
@@ -81,7 +81,7 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
         } else {
             items(uiState.goals) { goal ->
                 GoalItem(goal = goal)
-                Divider() // Add a divider between items
+                HorizontalDivider() // Add a divider between items
             }
         }
     }
