@@ -13,7 +13,7 @@ navigationCompose = "2.7.7" # Add Navigation Compose version
 lifecycle = "2.8.7" # Use existing lifecycle version for viewmodel-compose etc.
 coroutines = "1.8.1" # Add Coroutines version
 ksp = "2.0.0-1.0.21" # KSP version for Kotlin 2.0.0
-charts = "0.3.4" # Add Charts version
+vico = "1.14.0" # Add Vico charts version
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,8 +42,10 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-materialIconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" } # Add extended icons library (fixed alias)
-# Charts
-compose-charts = { group = "com.github.tehras", name = "charts", version.ref = "charts" }
+# Vico Charts
+vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

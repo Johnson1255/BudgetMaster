@@ -70,8 +70,9 @@ dependencies {
     // Coroutines (already included via lifecycle-runtime-ktx, but good to be explicit if needed elsewhere)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Charts
-    implementation(libs.compose.charts)
+    // Vico Charts
+    implementation(libs.vico.core)
+    implementation(libs.vico.compose.m3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
