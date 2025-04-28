@@ -8,7 +8,11 @@ sealed class Screen(val route: String) {
     object GoalEdit : Screen("goalEdit/{goalId}") { // Renamed and corrected route
         fun createRoute(goalId: Long) = "goalEdit/$goalId"
     }
-    object Categories : Screen("categories") // For managing categories
+    object CategoryList : Screen("categoryList") // Changed from Categories
+    object CategoryEdit : Screen("categoryEdit/{categoryId}") {
+        fun createRoute(categoryId: Int?) = "categoryEdit/${categoryId ?: -1}" // Use -1 for adding
+    }
+    // No separate CategoryAdd needed, handled by CategoryEdit with optional ID
     object Reports : Screen("reports")
 
     // Helper function to create routes with arguments
@@ -40,5 +44,6 @@ sealed class Screen(val route: String) {
     companion object {
         const val TRANSACTION_ID_ARG = "transactionId"
         const val GOAL_ID_ARG = "goalId" // Ensure this matches the key in the route "goalEdit/{goalId}"
+        const val CATEGORY_ID_ARG = "categoryId" // Key for category editing
     }
 }

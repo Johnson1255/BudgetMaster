@@ -13,6 +13,8 @@ import com.senlin.budgetmaster.ui.goal.edit.GoalEditViewModel // Import GoalEdit
 import com.senlin.budgetmaster.ui.goal.list.GoalListViewModel // Import GoalListViewModel
 import com.senlin.budgetmaster.ui.report.ReportViewModel // Import ReportViewModel
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel
+import com.senlin.budgetmaster.ui.category.list.CategoryListViewModel // Import CategoryListViewModel
+import com.senlin.budgetmaster.ui.category.edit.CategoryEditViewModel // Import CategoryEditViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire BudgetMaster app
@@ -46,6 +48,19 @@ object ViewModelFactory {
         // Initializer for ReportViewModel
         initializer {
             ReportViewModel(budgetMasterApplication().container.budgetRepository)
+        }
+
+        // Initializer for CategoryListViewModel
+        initializer {
+            CategoryListViewModel(budgetMasterApplication().container.budgetRepository)
+        }
+
+        // Initializer for CategoryEditViewModel
+        initializer {
+            CategoryEditViewModel(
+                this.createSavedStateHandle(), // Provides SavedStateHandle
+                budgetMasterApplication().container.budgetRepository
+            )
         }
 
         /* TODO: Add initializers for other ViewModels

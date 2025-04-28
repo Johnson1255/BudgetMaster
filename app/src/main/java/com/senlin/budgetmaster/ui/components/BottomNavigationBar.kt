@@ -3,6 +3,7 @@ package com.senlin.budgetmaster.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet // Keep existing specific imports if needed elsewhere
 import androidx.compose.material.icons.filled.Assessment // Keep existing specific imports if needed elsewhere
+import androidx.compose.material.icons.filled.Category // Import Category icon
 import androidx.compose.material.icons.filled.Dashboard // Keep existing specific imports if needed elsewhere
 import androidx.compose.material.icons.filled.Savings // Keep existing specific imports if needed elsewhere
 import androidx.compose.material3.*
@@ -26,8 +27,8 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Dashboard", Icons.Filled.Dashboard, Screen.Dashboard.route),
         BottomNavItem("Transactions", Icons.Filled.AccountBalanceWallet, Screen.Transactions.route),
         BottomNavItem("Goals", Icons.Filled.Savings, Screen.GoalList.route), // Updated route
+        BottomNavItem("Categories", Icons.Filled.Category, Screen.CategoryList.route), // Added Categories item
         BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route)
-        // Add Categories here if desired, or keep it accessible from elsewhere
     )
 
     NavigationBar {

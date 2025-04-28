@@ -24,6 +24,8 @@ import com.senlin.budgetmaster.ui.dashboard.DashboardScreen // Import the Dashbo
 import com.senlin.budgetmaster.ui.goal.edit.GoalEditScreen // Import Goal Edit Screen
 import com.senlin.budgetmaster.ui.goal.list.GoalListScreen // Import Goal List Screen
 import com.senlin.budgetmaster.ui.report.ReportScreen // Import Report Screen
+import com.senlin.budgetmaster.ui.category.list.CategoryListScreen // Import Category List Screen
+import com.senlin.budgetmaster.ui.category.edit.CategoryEditScreen // Import Category Edit Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 
@@ -75,9 +77,29 @@ fun AppNavHost(
         composable(Screen.Reports.route) {
             ReportScreen(modifier = Modifier) // Use the actual Report screen
         }
-        composable(Screen.Categories.route) {
-            // TODO: Replace with actual CategoriesScreen composable
-            PlaceholderScreen("Categories Screen")
+        // Replace Placeholder with actual Category List Screen
+        composable(Screen.CategoryList.route) {
+            CategoryListScreen(
+                onAddCategoryClick = {
+                    navController.navigate(Screen.CategoryEdit.createRoute(null)) // Navigate to add screen
+                },
+                onEditCategoryClick = { categoryId ->
+                    navController.navigate(Screen.CategoryEdit.createRoute(categoryId)) // Navigate to edit screen
+                }
+            )
+        }
+        // Add Category Edit Screen route with argument
+        composable(
+            route = Screen.CategoryEdit.route,
+            arguments = listOf(navArgument(Screen.CATEGORY_ID_ARG) {
+                type = NavType.IntType // Use IntType for category ID
+                defaultValue = -1 // Default for adding new category
+            })
+        ) {
+             CategoryEditScreen(
+                 navigateBack = { navController.popBackStack() },
+                 onSaveComplete = { navController.popBackStack() }
+             )
         }
         // Add Goal Edit Screen route with argument
         composable(
