@@ -10,7 +10,8 @@ sealed class Screen(val route: String) {
     }
     object CategoryList : Screen("categoryList") // Changed from Categories
     object CategoryEdit : Screen("categoryEdit/{categoryId}") {
-        fun createRoute(categoryId: Int?) = "categoryEdit/${categoryId ?: -1}" // Use -1 for adding
+        // Use Long? and 0L for adding, consistent with NavArgument defaultValue and Category ID type
+        fun createRoute(categoryId: Long?) = "categoryEdit/${categoryId ?: 0L}"
     }
     // No separate CategoryAdd needed, handled by CategoryEdit with optional ID
     object Reports : Screen("reports")

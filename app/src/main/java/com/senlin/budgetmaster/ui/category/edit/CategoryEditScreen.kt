@@ -42,7 +42,7 @@ fun CategoryEditScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(if (uiState.id == 0) "Add Category" else "Edit Category") },
+                title = { Text(if (uiState.id == 0L) "Add Category" else "Edit Category") }, // Use 0L for Long comparison
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -84,7 +84,7 @@ fun CategoryEditContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        if (uiState.isLoading && uiState.id != 0) { // Show loading only when editing/loading existing
+        if (uiState.isLoading && uiState.id != 0L) { // Use 0L for Long comparison
              Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                  CircularProgressIndicator()
              }
@@ -97,7 +97,7 @@ fun CategoryEditContent(
                 singleLine = true,
                 isError = !uiState.isEntryValid && uiState.name.isNotEmpty() // Show error if invalid after typing
             )
-            if (uiState.isLoading && uiState.id == 0) { // Show loading indicator next to button when saving new
+            if (uiState.isLoading && uiState.id == 0L) { // Use 0L for Long comparison
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class CategoryUiState(
-    val id: Int = 0,
+    val id: Long = 0L, // Changed to Long
     val name: String = "",
     val isEntryValid: Boolean = false,
     val isLoading: Boolean = false,
@@ -29,14 +29,17 @@ class CategoryEditViewModel(
     var categoryUiState by mutableStateOf(CategoryUiState())
         private set
 
-    private val categoryId: Int? = savedStateHandle["categoryId"]
+    // Retrieve categoryId as Long? Default to 0L if null (for new category)
+    private val categoryId: Long = savedStateHandle.get<Long>("categoryId") ?: 0L
 
     init {
-        viewModelScope.launch {
-            if (categoryId != null && categoryId != -1) { // -1 indicates adding a new category
+        // Load category if categoryId is not 0 (i.e., editing existing)
+        if (categoryId != 0L) {
+            viewModelScope.launch {
                 categoryUiState = categoryUiState.copy(isLoading = true)
                 try {
-                    val category = repository.getCategoryStream(categoryId)
+                    // Use getCategoryById with Long ID
+                    val category = repository.getCategoryById(categoryId)
                         .filterNotNull()
                         .first()
                     categoryUiState = category.toCategoryUiState(isEntryValid = true, isLoading = false)
@@ -61,7 +64,8 @@ class CategoryEditViewModel(
         categoryUiState = categoryUiState.copy(isLoading = true, error = null)
         return try {
             val category = categoryUiState.toCategory()
-            if (category.id == 0) {
+            // Check against 0L for new category
+            if (category.id == 0L) {
                 repository.insertCategory(category)
             } else {
                 repository.updateCategory(category)
@@ -81,13 +85,13 @@ class CategoryEditViewModel(
 
 // Extension functions to map between data model and UI state
 fun Category.toCategoryUiState(isEntryValid: Boolean = false, isLoading: Boolean = false): CategoryUiState = CategoryUiState(
-    id = id,
+    id = id, // id is already Long in Category model
     name = name,
     isEntryValid = isEntryValid,
     isLoading = isLoading
 )
 
 fun CategoryUiState.toCategory(): Category = Category(
-    id = id,
+    id = id, // id is Long in CategoryUiState now
     name = name
 )

@@ -28,7 +28,8 @@ class CategoryListViewModel(private val repository: BudgetRepository) : ViewMode
     fun loadCategories() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            repository.getAllCategoriesStream()
+            // Use the correct repository method
+            repository.getAllCategories()
                 .catch { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

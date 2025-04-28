@@ -92,8 +92,8 @@ fun AppNavHost(
         composable(
             route = Screen.CategoryEdit.route,
             arguments = listOf(navArgument(Screen.CATEGORY_ID_ARG) {
-                type = NavType.IntType // Use IntType for category ID
-                defaultValue = -1 // Default for adding new category
+                type = NavType.LongType // Use LongType for category ID
+                defaultValue = 0L // Default 0L for adding new category (align with ViewModel)
             })
         ) {
              CategoryEditScreen(

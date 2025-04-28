@@ -23,7 +23,7 @@ fun CategoryListScreen(
     modifier: Modifier = Modifier,
     viewModel: CategoryListViewModel = viewModel(factory = ViewModelFactory.Factory),
     onAddCategoryClick: () -> Unit,
-    onEditCategoryClick: (Int) -> Unit
+    onEditCategoryClick: (Long) -> Unit // Changed to Long
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -47,7 +47,7 @@ fun CategoryListScreen(
 fun CategoryListContent(
     modifier: Modifier = Modifier,
     uiState: CategoryListUiState,
-    onEditClick: (Int) -> Unit,
+    onEditClick: (Long) -> Unit, // Changed to Long
     onDeleteClick: (Category) -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
