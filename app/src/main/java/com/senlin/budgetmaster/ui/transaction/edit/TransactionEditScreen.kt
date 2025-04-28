@@ -7,7 +7,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+// Remove wildcard import for material 2
+// import androidx.compose.material.*
+// Add specific Material 3 imports
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api // Use M3 experimental API
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
@@ -21,11 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.senlin.budgetmaster.R // Assuming R class is generated correctly
 import com.senlin.budgetmaster.data.model.Category
+import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class) // Add OptIn at file level or ensure it covers all usages
 @Composable
 fun TransactionEditScreen(
     navigateBack: () -> Unit,
@@ -77,17 +96,18 @@ fun TransactionEditForm(
     onAmountChange: (String) -> Unit,
     onTypeChange: (TransactionType) -> Unit,
     onCategoryChange: (Category) -> Unit,
-    onDateChange: (LocalDate) -> Unit,
+    onDateChange: (LocalDate) -> Unit, // Ensure this matches ViewModel
     onNoteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
+    // Removed duplicated lines below
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp) // Use dp import
             .verticalScroll(rememberScrollState()), // Make content scrollable
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp) // Use dp import
     ) {
         // Amount Field
         OutlinedTextField(
@@ -100,22 +120,22 @@ fun TransactionEditForm(
 
         // Transaction Type Radio Buttons
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Type:", style = MaterialTheme.typography.body1) // Replace with stringResource
-            Spacer(Modifier.width(8.dp))
+            Text("Type:", style = MaterialTheme.typography.bodyLarge) // Use M3 Typography & Replace with stringResource
+            Spacer(Modifier.width(8.dp)) // Use dp import
             Row {
-                TransactionType.values().forEach { type ->
+                TransactionType.values().forEach { type -> // Use imported TransactionType
                     Row(
-                        Modifier.clickable { onTypeChange(type) }.padding(horizontal = 8.dp),
+                        Modifier.clickable { onTypeChange(type) }.padding(horizontal = 8.dp), // Use dp import
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(
+                        RadioButton( // Use M3 RadioButton
                             selected = (type == uiState.type),
                             onClick = { onTypeChange(type) }
                         )
                         Text(
                             text = type.name, // Consider more user-friendly names
-                            style = MaterialTheme.typography.body1,
-                            modifier = Modifier.padding(start = 4.dp)
+                            style = MaterialTheme.typography.bodyLarge, // Use M3 typography
+                            modifier = Modifier.padding(start = 4.dp) // Use dp import
                         )
                     }
                 }
@@ -154,7 +174,7 @@ fun TransactionEditForm(
             modifier = Modifier.align(Alignment.End)
         ) {
             if (uiState.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colors.onPrimary)
+                CircularProgressIndicator(modifier = Modifier.size(24.dp)) // M3 CircularProgressIndicator, color is handled by theme
             } else {
                 Text("Save") // Replace with stringResource
             }
@@ -162,7 +182,7 @@ fun TransactionEditForm(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class) // Use M3 Experimental API
 @Composable
 fun CategorySelector(
     selectedCategory: Category?,
@@ -194,15 +214,16 @@ fun CategorySelector(
                     onClick = {
                         onCategorySelected(category)
                         expanded = false
-                    }
-                ) {
-                    Text(category.name)
-                }
+                    },
+                    text = { Text(category.name) } // Use text lambda parameter
+                )
             }
              if (categories.isEmpty()) {
-                DropdownMenuItem(onClick = { expanded = false }, enabled = false) {
-                    Text("No categories available") // Replace with stringResource
-                }
+                DropdownMenuItem(
+                    onClick = { expanded = false },
+                    enabled = false,
+                    text = { Text("No categories available") } // Use text lambda parameter & Replace with stringResource
+                )
             }
         }
     }

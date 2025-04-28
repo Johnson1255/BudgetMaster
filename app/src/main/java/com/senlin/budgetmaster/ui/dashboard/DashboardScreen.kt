@@ -16,8 +16,10 @@ import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
 import com.senlin.budgetmaster.ui.ViewModelFactory // Use ViewModelFactory
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDate // Import LocalDate
+import java.time.format.DateTimeFormatter // Import DateTimeFormatter
+import java.time.format.FormatStyle // Optional: For localized date formats
+import java.util.Locale // Keep Locale for NumberFormat
 
 @Composable
 fun DashboardScreen(
@@ -180,7 +182,10 @@ fun formatCurrency(amount: Double): String {
     return format.format(amount)
 }
 
-fun formatDate(date: Date): String {
-    val format = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    return format.format(date)
+fun formatDate(date: LocalDate): String {
+    // Use DateTimeFormatter for LocalDate
+    // You can choose different styles like FormatStyle.MEDIUM, FormatStyle.LONG, etc.
+    // Or define a custom pattern: DateTimeFormatter.ofPattern("MMM dd, yyyy")
+    val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
+    return date.format(formatter)
 }

@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.senlin.budgetmaster"
-        minSdk = 24
+        minSdk = 26 // Increased minSdk to 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"

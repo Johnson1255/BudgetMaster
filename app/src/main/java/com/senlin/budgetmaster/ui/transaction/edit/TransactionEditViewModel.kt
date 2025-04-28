@@ -3,33 +3,39 @@ package com.senlin.budgetmaster.ui.transaction.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+// Removed duplicate imports
 import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Transaction
+import com.senlin.budgetmaster.data.model.TransactionType // Import from model
+import com.senlin.budgetmaster.navigation.Screen // Import Screen
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first // Import first extension
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.LocalDate // Use java.time.LocalDate
+// Removed unused imports for custom first()
+import java.util.NoSuchElementException // Keep if needed elsewhere, but likely not for first()
 
 data class TransactionEditUiState(
-    val transactionId: Int? = null,
-    val amount: String = "",
-    val type: TransactionType = TransactionType.EXPENSE, // Default to Expense
+    val transactionId: Long? = null, // Use Long for ID
+    val amount: String = "", // Keep String for TextField binding
+    val type: TransactionType = TransactionType.EXPENSE, // Use model's enum
     val selectedCategory: Category? = null,
     val availableCategories: List<Category> = emptyList(),
-    val date: LocalDate = LocalDate.now(),
+    val date: LocalDate = LocalDate.now(), // Use java.time.LocalDate
     val note: String = "",
     val isSaving: Boolean = false,
     val isError: Boolean = false,
     val isLoading: Boolean = true // Start in loading state
 )
 
-enum class TransactionType {
-    INCOME, EXPENSE
-}
+// Remove local enum definition, use the one from the model
+// enum class TransactionType {
+//    INCOME, EXPENSE
+// }
 
 class TransactionEditViewModel(
     private val repository: BudgetRepository,
@@ -39,34 +45,43 @@ class TransactionEditViewModel(
     private val _uiState = MutableStateFlow(TransactionEditUiState())
     val uiState: StateFlow<TransactionEditUiState> = _uiState.asStateFlow()
 
-    private val transactionId: Int? = savedStateHandle["transactionId"]
+    // Get transactionId as Long? from SavedStateHandle
+    private val transactionId: Long? = savedStateHandle[Screen.TRANSACTION_ID_ARG] // Use key from Screen
 
     init {
-        loadInitialData()
+        // Ensure the ID from navigation (-1) is treated as null for new transaction logic
+        val idToLoad = if (transactionId == -1L) null else transactionId
+        loadInitialData(idToLoad)
     }
 
-    private fun loadInitialData() {
+    // Pass the potentially null ID
+    private fun loadInitialData(idToLoad: Long?) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val categories = repository.getAllCategoriesStream().first() // Get initial list
-                if (transactionId != null && transactionId != -1) { // Check for valid ID for editing
-                    val transaction = repository.getTransactionStream(transactionId).first()
+                // Use correct repository method names
+                 val categoriesFlow = repository.getAllCategories() // Corrected method name
+                 val categories = categoriesFlow.first() // Collect first emission
+
+                if (idToLoad != null) { // Editing existing transaction
+                     val transactionFlow = repository.getTransactionById(idToLoad) // Corrected method name
+                     val transaction = transactionFlow.first()
+
                     if (transaction != null) {
                         _uiState.update {
                             it.copy(
-                                transactionId = transaction.id,
-                                amount = transaction.amount.toPlainString(),
-                                type = if (transaction.isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                                selectedCategory = categories.find { c -> c.id == transaction.categoryId },
+                                transactionId = transaction.id, // Long
+                                amount = transaction.amount.toString(), // Convert Double to String
+                                type = transaction.type, // Use type from model
+                                selectedCategory = categories.find { c -> c.id == transaction.categoryId }, // Match Long IDs
                                 availableCategories = categories,
-                                date = transaction.date,
+                                date = transaction.date, // java.time.LocalDate
                                 note = transaction.note ?: "",
                                 isLoading = false
                             )
                         }
                     } else {
-                        // Handle case where transaction ID is invalid
+                        // Handle case where transaction ID is invalid but was provided
                         _uiState.update { it.copy(isLoading = false, isError = true, availableCategories = categories) }
                     }
                 } else {
@@ -76,22 +91,23 @@ class TransactionEditViewModel(
                             availableCategories = categories,
                             isLoading = false,
                             // Select first category as default if available
-                            selectedCategory = categories.firstOrNull()
+                            selectedCategory = categories.firstOrNull() // Use firstOrNull for safety
                         )
                     }
                 }
             } catch (e: Exception) {
+                 // Log the exception e.printStackTrace() or use a proper logger
                 _uiState.update { it.copy(isLoading = false, isError = true) }
             }
         }
     }
 
      fun updateAmount(newAmount: String) {
-        // Basic validation can be added here if needed
+        // Basic validation can be added here if needed (e.g., regex for numbers)
         _uiState.update { it.copy(amount = newAmount) }
     }
 
-    fun updateType(newType: TransactionType) {
+    fun updateType(newType: TransactionType) { // Parameter uses model's enum
         _uiState.update { it.copy(type = newType) }
     }
 
@@ -99,7 +115,7 @@ class TransactionEditViewModel(
         _uiState.update { it.copy(selectedCategory = newCategory) }
     }
 
-    fun updateDate(newDate: LocalDate) {
+    fun updateDate(newDate: LocalDate) { // Parameter is java.time.LocalDate
         _uiState.update { it.copy(date = newDate) }
     }
 
@@ -108,10 +124,12 @@ class TransactionEditViewModel(
     }
 
     fun saveTransaction() {
-        if (_uiState.value.isSaving || _uiState.value.selectedCategory == null) return // Prevent double saves or saving without category
+        val currentState = uiState.value
+        if (currentState.isSaving || currentState.selectedCategory == null) return // Prevent double saves or saving without category
 
-        val amountDecimal = try {
-            BigDecimal(_uiState.value.amount)
+        val amountDouble = try {
+            // Convert amount string to Double
+            currentState.amount.toDouble()
         } catch (e: NumberFormatException) {
             _uiState.update { it.copy(isError = true) } // Show error if amount is invalid
             return
@@ -121,34 +139,32 @@ class TransactionEditViewModel(
 
         viewModelScope.launch {
             try {
-                val transaction = Transaction(
-                    id = _uiState.value.transactionId ?: 0, // 0 for Room to auto-generate if new
-                    amount = amountDecimal,
-                    isIncome = _uiState.value.type == TransactionType.INCOME,
-                    categoryId = _uiState.value.selectedCategory!!.id, // Non-null asserted due to check above
-                    date = _uiState.value.date,
-                    note = _uiState.value.note.takeIf { it.isNotBlank() } // Store null if note is blank
+                val transactionToSave = Transaction(
+                    // Use 0L for new transaction ID, Room will auto-generate
+                    id = currentState.transactionId ?: 0L,
+                    amount = amountDouble, // Use Double
+                    type = currentState.type, // Use TransactionType enum
+                    // Use categoryId (Long), non-null asserted due to check above
+                    categoryId = currentState.selectedCategory!!.id,
+                    date = currentState.date, // Use LocalDate
+                    note = currentState.note.takeIf { it.isNotBlank() } // Store null if note is blank
                 )
 
-                if (transaction.id == 0) {
-                    repository.insertTransaction(transaction)
+                if (transactionToSave.id == 0L) {
+                    // Assuming repository method exists
+                    repository.insertTransaction(transactionToSave)
                 } else {
-                    repository.updateTransaction(transaction)
+                    // Assuming repository method exists
+                    repository.updateTransaction(transactionToSave)
                 }
                 // State update to signal save completion can be added if navigation depends on it
-                 _uiState.update { it.copy(isSaving = false) } // Reset saving state
+                 _uiState.update { it.copy(isSaving = false) } // Reset saving state after success/failure
             } catch (e: Exception) {
+                 // Log the exception e.printStackTrace() or use a proper logger
                 _uiState.update { it.copy(isSaving = false, isError = true) }
             }
         }
     }
 }
-// Helper extension needed for collecting Flow once
-suspend fun <T> kotlinx.coroutines.flow.Flow<T>.first(): T {
-    var result: T? = null
-    kotlinx.coroutines.flow.collect { value ->
-        result = value
-        throw kotlinx.coroutines.CancellationException() // Stop collecting after the first item
-    }
-    return result ?: throw NoSuchElementException("Flow was empty")
-}
+
+// Removed custom first() extension function. Using kotlinx.coroutines.flow.first() instead.

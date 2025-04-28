@@ -8,7 +8,8 @@ import androidx.room.Query
 import androidx.room.Update
 import com.senlin.budgetmaster.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
+import java.time.LocalDate // Import LocalDate
+// Remove java.util.Date import
 
 @Dao
 interface TransactionDao {
@@ -29,7 +30,7 @@ interface TransactionDao {
     fun getAllTransactions(): Flow<List<Transaction>>
 
     @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
-    fun getTransactionsBetweenDates(startDate: Date, endDate: Date): Flow<List<Transaction>>
+    fun getTransactionsBetweenDates(startDate: LocalDate, endDate: LocalDate): Flow<List<Transaction>> // Use LocalDate
 
     // Add more specific queries as needed, e.g., by type or category
     @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY date DESC")

@@ -7,7 +7,7 @@ import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
+import java.time.LocalDate // Use LocalDate instead of Date
 
 class OfflineBudgetRepository(
     private val transactionDao: TransactionDao,
@@ -18,7 +18,7 @@ class OfflineBudgetRepository(
     // Transaction Operations
     override fun getAllTransactions(): Flow<List<Transaction>> = transactionDao.getAllTransactions()
     override fun getTransactionById(id: Long): Flow<Transaction?> = transactionDao.getTransactionById(id)
-    override fun getTransactionsBetweenDates(startDate: Date, endDate: Date): Flow<List<Transaction>> =
+    override fun getTransactionsBetweenDates(startDate: LocalDate, endDate: LocalDate): Flow<List<Transaction>> = // Use LocalDate
         transactionDao.getTransactionsBetweenDates(startDate, endDate)
     override fun getTransactionsByCategoryId(categoryId: Long): Flow<List<Transaction>> =
         transactionDao.getTransactionsByCategoryId(categoryId)

@@ -4,14 +4,15 @@ import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
+import java.time.LocalDate // Import LocalDate
+// Remove java.util.Date import
 
 interface BudgetRepository {
 
     // Transaction Operations
     fun getAllTransactions(): Flow<List<Transaction>>
     fun getTransactionById(id: Long): Flow<Transaction?>
-    fun getTransactionsBetweenDates(startDate: Date, endDate: Date): Flow<List<Transaction>>
+    fun getTransactionsBetweenDates(startDate: LocalDate, endDate: LocalDate): Flow<List<Transaction>> // Use LocalDate
     fun getTransactionsByCategoryId(categoryId: Long): Flow<List<Transaction>>
     suspend fun insertTransaction(transaction: Transaction)
     suspend fun updateTransaction(transaction: Transaction)

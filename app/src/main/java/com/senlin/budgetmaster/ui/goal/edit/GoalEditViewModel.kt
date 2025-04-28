@@ -11,7 +11,7 @@ import com.senlin.budgetmaster.data.repository.BudgetRepository
 import com.senlin.budgetmaster.navigation.Screen // Import Screen
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.time.LocalDate // Use LocalDate
 
 class GoalEditViewModel(
     savedStateHandle: SavedStateHandle,
@@ -64,8 +64,8 @@ data class GoalUiState(
     val name: String = "",
     val targetAmount: String = "",
     val currentAmount: String = "0.0", // Keep as String for TextField
-    val targetDate: Date? = null,
-    val creationDate: Date = Date(), // Set on creation/load
+    val targetDate: LocalDate? = null, // Use LocalDate
+    val creationDate: LocalDate = LocalDate.now(), // Use LocalDate and set current date
     val isEntryValid: Boolean = false
 )
 

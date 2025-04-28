@@ -18,10 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.senlin.budgetmaster.data.model.Transaction
-// import com.senlin.budgetmaster.data.model.TransactionType // TransactionType is defined in Transaction model now
+import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType from model
 import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.ui.ViewModelFactory // Use ViewModelFactory
-import java.time.format.DateTimeFormatter // Use java.time
+import java.text.SimpleDateFormat // Use SimpleDateFormat for java.util.Date
 import java.util.*
 
 @Composable
@@ -62,7 +62,7 @@ fun TransactionListScreen(
 private fun TransactionListContent(
     transactions: List<Transaction>,
     isLoading: Boolean,
-    onTransactionClick: (Int) -> Unit, // Changed ID type to Int
+    onTransactionClick: (Long) -> Unit, // Change ID type back to Long
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
@@ -95,43 +95,43 @@ private fun TransactionListContent(
 @Composable
 private fun TransactionItem(
     transaction: Transaction,
-    onClick: () -> Unit, // Keep onClick lambda signature simple
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // TODO: Fetch category name based on transaction.categoryId for better display
     val categoryName = "Category ${transaction.categoryId}" // Placeholder
-    // Use isIncome boolean from Transaction model
-    val amountColor = if (transaction.isIncome) Color(0xFF008000) else Color.Red // Dark Green for income, Red for expense
-    val sign = if (transaction.isIncome) "+" else "-"
-    // Use java.time formatter
-    val formattedDate = transaction.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
+    // Use type property from Transaction model
+    val amountColor = if (transaction.type == TransactionType.INCOME) Color(0xFF008000) else Color.Red // Dark Green for income, Red for expense
+    val sign = if (transaction.type == TransactionType.INCOME) "+" else "-"
+    // Use SimpleDateFormat for java.util.Date
+    val formattedDate = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(transaction.date)
 
-    Card(
+    Card( // Use M3 Card
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick), // Call the passed lambda on click
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Use M3 CardDefaults
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp) // Use dp import
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(categoryName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                Text(categoryName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold) // Use M3 Text
                 if (!transaction.note.isNullOrBlank()) {
-                    Text(transaction.note, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(transaction.note, style = MaterialTheme.typography.bodySmall, color = Color.Gray) // Use M3 Text
                 }
-                Text(formattedDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(formattedDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray) // Use M3 Text
             }
-            Text(
+            Text( // Use M3 Text
                 text = "$sign${"%.2f".format(transaction.amount)}", // Format to 2 decimal places
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = amountColor,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = 16.dp) // Use dp import
             )
         }
     }

@@ -2,10 +2,11 @@ package com.senlin.budgetmaster.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import java.util.Date
+// TypeConverters annotation might not be needed here if applied at the Database level
+// import androidx.room.TypeConverters
+import java.time.LocalDate // Import LocalDate
 
-// TODO: Define TypeConverter for Date
+// Removed TODO as converter is handled
 
 enum class TransactionType {
     INCOME, EXPENSE
@@ -18,6 +19,6 @@ data class Transaction(
     val amount: Double,
     val type: TransactionType,
     val categoryId: Long, // Foreign key to Category table
-    val date: Date,
+    val date: LocalDate, // Use LocalDate
     val note: String? = null
 )

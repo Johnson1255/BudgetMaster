@@ -2,17 +2,18 @@ package com.senlin.budgetmaster.data.db
 
 import androidx.room.TypeConverter
 import com.senlin.budgetmaster.data.model.TransactionType
-import java.util.Date
+// Removed java.util.Date import
+import java.time.LocalDate // Import LocalDate
 
 class Converters {
     @TypeConverter
-    fun fromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
+    fun fromEpochDay(value: Long?): LocalDate? {
+        return value?.let { LocalDate.ofEpochDay(it) }
     }
 
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
+    fun localDateToEpochDay(date: LocalDate?): Long? {
+        return date?.toEpochDay()
     }
 
     @TypeConverter

@@ -5,12 +5,13 @@ sealed class Screen(val route: String) {
     object Transactions : Screen("transactions")
     // Updated AddEditTransaction to handle optional ID for adding/editing
     object AddEditTransaction : Screen("addEditTransaction?${Screen.TRANSACTION_ID_ARG}={${Screen.TRANSACTION_ID_ARG}}") {
-        fun createRoute(transactionId: Int?) = "addEditTransaction?${Screen.TRANSACTION_ID_ARG}=${transactionId ?: -1}" // Use -1 for new transaction
+        // Use Long? for ID type, -1L for new transaction marker
+        fun createRoute(transactionId: Long?) = "addEditTransaction?${Screen.TRANSACTION_ID_ARG}=${transactionId ?: -1L}"
         const val routeWithArg = "addEditTransaction?${Screen.TRANSACTION_ID_ARG}={${Screen.TRANSACTION_ID_ARG}}"
         val arguments = listOf(
             androidx.navigation.navArgument(Screen.TRANSACTION_ID_ARG) {
-                type = androidx.navigation.NavType.IntType
-                defaultValue = -1 // Default for adding new transaction
+                type = androidx.navigation.NavType.LongType // Change type to LongType
+                defaultValue = -1L // Default for adding new transaction (use Long)
             }
         )
     }
