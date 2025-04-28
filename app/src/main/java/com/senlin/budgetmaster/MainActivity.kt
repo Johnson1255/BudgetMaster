@@ -27,6 +27,7 @@ import com.senlin.budgetmaster.ui.report.ReportScreen // Import Report Screen
 import com.senlin.budgetmaster.ui.category.list.CategoryListScreen // Import Category List Screen
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditScreen // Import Category Edit Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
+import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditScreen // Import Transaction Edit Screen
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 
 class MainActivity : ComponentActivity() {
@@ -108,8 +109,16 @@ fun AppNavHost(
         ) {
             GoalEditScreen(navController = navController)
         }
-        // TODO: Add composable routes for Add/Edit Transaction screens with arguments later
-        // Example: composable(Screen.AddEditTransaction.withArgs(Screen.TRANSACTION_ID_ARG)) { ... }
+        // Add Transaction Edit Screen route with optional argument
+        composable(
+            route = Screen.AddEditTransaction.routeWithArg,
+            arguments = Screen.AddEditTransaction.arguments
+        ) {
+            TransactionEditScreen(
+                navigateBack = { navController.popBackStack() }
+                // ViewModel will get the transactionId from SavedStateHandle
+            )
+        }
     }
 }
 

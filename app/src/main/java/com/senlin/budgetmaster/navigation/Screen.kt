@@ -3,10 +3,20 @@ package com.senlin.budgetmaster.navigation
 sealed class Screen(val route: String) {
     object Dashboard : Screen("dashboard")
     object Transactions : Screen("transactions")
-    object AddEditTransaction : Screen("add_edit_transaction") // Can take an optional transactionId argument
+    // Updated AddEditTransaction to handle optional ID for adding/editing
+    object AddEditTransaction : Screen("addEditTransaction?${Screen.TRANSACTION_ID_ARG}={${Screen.TRANSACTION_ID_ARG}}") {
+        fun createRoute(transactionId: Int?) = "addEditTransaction?${Screen.TRANSACTION_ID_ARG}=${transactionId ?: -1}" // Use -1 for new transaction
+        const val routeWithArg = "addEditTransaction?${Screen.TRANSACTION_ID_ARG}={${Screen.TRANSACTION_ID_ARG}}"
+        val arguments = listOf(
+            androidx.navigation.navArgument(Screen.TRANSACTION_ID_ARG) {
+                type = androidx.navigation.NavType.IntType
+                defaultValue = -1 // Default for adding new transaction
+            }
+        )
+    }
     object GoalList : Screen("goalList") // Renamed from Goals
     object GoalEdit : Screen("goalEdit/{goalId}") { // Renamed and corrected route
-        fun createRoute(goalId: Long) = "goalEdit/$goalId"
+        fun createRoute(goalId: Long) = "goalEdit/$goalId" // Keep Long for Goal ID consistency if needed
     }
     object CategoryList : Screen("categoryList") // Changed from Categories
     object CategoryEdit : Screen("categoryEdit/{categoryId}") {
