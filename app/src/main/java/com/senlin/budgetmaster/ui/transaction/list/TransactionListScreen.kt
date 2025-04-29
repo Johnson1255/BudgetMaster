@@ -48,6 +48,7 @@ fun TransactionListScreen(
     ) { paddingValues ->
         TransactionListContent(
             transactions = uiState.transactions,
+            categoryMap = uiState.categoryMap, // Pass the map
             isLoading = uiState.isLoading,
             onTransactionClick = { transactionId ->
                 // Navigate to Add/Edit screen for editing the selected transaction
@@ -61,8 +62,9 @@ fun TransactionListScreen(
 @Composable
 private fun TransactionListContent(
     transactions: List<Transaction>,
+    categoryMap: Map<Long, String>, // Accept the map
     isLoading: Boolean,
-    onTransactionClick: (Long) -> Unit, // Change ID type back to Long
+    onTransactionClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
@@ -84,6 +86,7 @@ private fun TransactionListContent(
                 items(transactions, key = { it.id }) { transaction ->
                     TransactionItem(
                         transaction = transaction,
+                        categoryMap = categoryMap, // Pass the map down
                         onClick = { onTransactionClick(transaction.id) }
                     )
                 }
@@ -95,11 +98,12 @@ private fun TransactionListContent(
 @Composable
 private fun TransactionItem(
     transaction: Transaction,
+    categoryMap: Map<Long, String>, // Accept the map
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // TODO: Fetch category name based on transaction.categoryId for better display
-    val categoryName = "Category ${transaction.categoryId}" // Placeholder
+    // Look up category name from the map, provide a default if not found
+    val categoryName = categoryMap[transaction.categoryId] ?: "Unknown Category"
     // Use type property from Transaction model
     val amountColor = if (transaction.type == TransactionType.INCOME) Color(0xFF008000) else Color.Red // Dark Green for income, Red for expense
     val sign = if (transaction.type == TransactionType.INCOME) "+" else "-"

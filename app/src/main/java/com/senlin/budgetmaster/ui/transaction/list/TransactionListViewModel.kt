@@ -2,12 +2,10 @@ package com.senlin.budgetmaster.ui.transaction.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.senlin.budgetmaster.data.model.Category // Import Category
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.repository.BudgetRepository
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.* // Import combine
 
 /**
  * Represents the UI state for the Transaction List screen.
@@ -15,14 +13,25 @@ import kotlinx.coroutines.flow.stateIn
 data class TransactionListUiState(
     val transactions: List<Transaction> = emptyList(),
     val isLoading: Boolean = false,
+    val categoryMap: Map<Long, String> = emptyMap(), // Add map for category names
     // Add other state properties like error messages if needed
 )
 
 class TransactionListViewModel(private val budgetRepository: BudgetRepository) : ViewModel() {
 
     val uiState: StateFlow<TransactionListUiState> =
-        budgetRepository.getAllTransactions()
-            .map { transactions -> TransactionListUiState(transactions = transactions) }
+        combine(
+            budgetRepository.getAllTransactions(),
+            budgetRepository.getAllCategories() // Fetch categories as well
+        ) { transactions, categories ->
+            // Create a map from category ID to category name
+            val categoryMap = categories.associateBy({ it.id }, { it.name })
+            TransactionListUiState(
+                transactions = transactions,
+                categoryMap = categoryMap,
+                isLoading = false // Data loaded
+            )
+        }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),

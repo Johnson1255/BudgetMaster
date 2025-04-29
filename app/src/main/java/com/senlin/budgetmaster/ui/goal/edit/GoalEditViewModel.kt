@@ -18,8 +18,8 @@ class GoalEditViewModel(
     private val budgetRepository: BudgetRepository
 ) : ViewModel() {
 
-    // Retrieve goalId directly as Long, defaulting to 0L if missing
-    private val goalId: Long = savedStateHandle.get<Long>(Screen.GOAL_ID_ARG) ?: 0L
+    // Retrieve goalId, defaulting to -1L (consistent with NavArgument default) if missing/null
+    private val goalId: Long = savedStateHandle.get<Long>(Screen.GOAL_ID_ARG) ?: -1L
 
     var goalUiState by mutableStateOf(GoalUiState())
         private set

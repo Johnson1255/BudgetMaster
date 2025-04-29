@@ -102,11 +102,12 @@ fun AppNavHost(
                  onSaveComplete = { navController.popBackStack() }
              )
         }
-        // Add Goal Edit Screen route with argument
+        // Add Goal Edit Screen route with optional argument
         composable(
-            route = Screen.GoalEdit.route,
-            arguments = listOf(navArgument(Screen.GOAL_ID_ARG) { type = NavType.LongType })
+            route = Screen.GoalEdit.routeWithArg, // Use routeWithArg
+            arguments = Screen.GoalEdit.arguments // Use arguments from Screen object
         ) {
+            // Pass navController for back navigation, ViewModel handles ID retrieval
             GoalEditScreen(navController = navController)
         }
         // Add Transaction Edit Screen route with optional argument

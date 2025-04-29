@@ -35,7 +35,7 @@ fun GoalListScreen(
             TopAppBar(title = { Text("Metas") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.GoalEdit.createRoute(0L)) }) { // Use createRoute for new goal (ID 0)
+            FloatingActionButton(onClick = { navController.navigate(Screen.GoalEdit.createRoute(null)) }) { // Use createRoute with null for new goal
                 Icon(Icons.Filled.Add, contentDescription = "Agregar Meta")
             }
         }

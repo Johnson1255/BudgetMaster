@@ -16,8 +16,16 @@ sealed class Screen(val route: String) {
         )
     }
     object GoalList : Screen("goalList") // Renamed from Goals
-    object GoalEdit : Screen("goalEdit/{goalId}") { // Renamed and corrected route
-        fun createRoute(goalId: Long) = "goalEdit/$goalId" // Keep Long for Goal ID consistency if needed
+    // Updated GoalEdit to handle optional ID for adding/editing
+    object GoalEdit : Screen("goalEdit?${Screen.GOAL_ID_ARG}={${Screen.GOAL_ID_ARG}}") {
+        fun createRoute(goalId: Long?) = "goalEdit?${Screen.GOAL_ID_ARG}=${goalId ?: -1L}" // Use -1L for new
+        const val routeWithArg = "goalEdit?${Screen.GOAL_ID_ARG}={${Screen.GOAL_ID_ARG}}"
+        val arguments = listOf(
+            androidx.navigation.navArgument(Screen.GOAL_ID_ARG) {
+                type = androidx.navigation.NavType.LongType
+                defaultValue = -1L // Default for adding new goal
+            }
+        )
     }
     object CategoryList : Screen("categoryList") // Changed from Categories
     object CategoryEdit : Screen("categoryEdit/{categoryId}") {
