@@ -15,6 +15,7 @@ import com.senlin.budgetmaster.ui.report.ReportViewModel // Import ReportViewMod
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel
 import com.senlin.budgetmaster.ui.category.list.CategoryListViewModel // Import CategoryListViewModel
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditViewModel // Import CategoryEditViewModel
+import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditViewModel // Import TransactionEditViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire BudgetMaster app
@@ -63,9 +64,17 @@ object ViewModelFactory {
             )
         }
 
+        // Initializer for TransactionEditViewModel
+        initializer {
+            TransactionEditViewModel(
+                budgetMasterApplication().container.budgetRepository,
+                this.createSavedStateHandle() // Provides SavedStateHandle
+            )
+        }
+
         /* TODO: Add initializers for other ViewModels
          initializer {
-             AddEditTransactionViewModel(
+             AddEditTransactionViewModel( // This seems to be an old name, TransactionEditViewModel is used
                  this.createSavedStateHandle(),
                  budgetMasterApplication().container.budgetRepository
              )
