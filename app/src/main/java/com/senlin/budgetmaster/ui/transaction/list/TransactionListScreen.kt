@@ -21,8 +21,9 @@ import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType from model
 import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.ui.ViewModelFactory // Use ViewModelFactory
-import java.text.SimpleDateFormat // Use SimpleDateFormat for java.util.Date
-import java.util.*
+import java.time.format.DateTimeFormatter // Use DateTimeFormatter for LocalDate
+import java.time.format.FormatStyle // For localized date formats
+import java.util.* // Keep Locale for formatter
 
 @Composable
 fun TransactionListScreen(
@@ -107,8 +108,9 @@ private fun TransactionItem(
     // Use type property from Transaction model
     val amountColor = if (transaction.type == TransactionType.INCOME) Color(0xFF008000) else Color.Red // Dark Green for income, Red for expense
     val sign = if (transaction.type == TransactionType.INCOME) "+" else "-"
-    // Use SimpleDateFormat for java.util.Date
-    val formattedDate = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(transaction.date)
+    // Use DateTimeFormatter for LocalDate
+    val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
+    val formattedDate = transaction.date.format(formatter)
 
     Card( // Use M3 Card
         modifier = modifier
