@@ -70,6 +70,9 @@ dependencies {
     // Coroutines (already included via lifecycle-runtime-ktx, but good to be explicit if needed elsewhere)
     implementation(libs.kotlinx.coroutines.android)
 
+    // DataStore Preferences
+    implementation(libs.androidx.datastore.preferences)
+
     // Vico Charts
     implementation(libs.vico.core)
     implementation(libs.vico.compose.m3)

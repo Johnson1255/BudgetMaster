@@ -14,6 +14,7 @@ lifecycle = "2.8.7" # Use existing lifecycle version for viewmodel-compose etc.
 coroutines = "1.8.1" # Add Coroutines version
 ksp = "2.0.0-1.0.21" # KSP version for Kotlin 2.0.0
 vico = "1.14.0" # Add Vico charts version
+datastorePreferences = "1.1.1" # Add DataStore Preferences version
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,8 @@ androidx-materialIconsExtended = { group = "androidx.compose.material", name = "
 # Vico Charts
 vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+# DataStore Preferences
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 
 
 [plugins]
