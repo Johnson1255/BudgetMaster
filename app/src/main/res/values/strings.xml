@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">BudgetMaster</string>
+    <string name="splash_welcome">Welcome to BudgetMaster!</string>
+    <string name="splash_select_language">Please select your language:</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Spanish</string>
 </resources>
