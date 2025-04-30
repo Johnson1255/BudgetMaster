@@ -15,8 +15,10 @@ coroutines = "1.8.1" # Add Coroutines version
 ksp = "2.0.0-1.0.21" # KSP version for Kotlin 2.0.0
 vico = "1.14.0" # Add Vico charts version
 datastorePreferences = "1.1.1" # Add DataStore Preferences version
+appcompat = "1.7.0" # Add AppCompat version
 
 [libraries]
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" } # Add AppCompat library
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
