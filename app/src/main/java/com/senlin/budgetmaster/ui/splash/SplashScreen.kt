@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.senlin.budgetmaster.R // Assuming R is generated in this package
+import com.senlin.budgetmaster.R
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 
 @Composable
@@ -25,13 +25,13 @@ fun SplashScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Welcome to BudgetMaster!", // Placeholder - will use stringResource
+            text = stringResource(id = R.string.splash_welcome),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
         Text(
-            text = "Please select your language:", // Placeholder
+            text = stringResource(id = R.string.splash_select_language),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -41,10 +41,10 @@ fun SplashScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(onClick = { onLanguageSelected("en") }) {
-                Text("English") // Placeholder
+                Text(stringResource(id = R.string.language_english))
             }
             Button(onClick = { onLanguageSelected("es") }) {
-                Text("Español") // Placeholder
+                Text(stringResource(id = R.string.language_spanish))
             }
         }
     }

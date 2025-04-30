@@ -16,6 +16,7 @@ import com.senlin.budgetmaster.ui.transaction.list.TransactionListViewModel
 import com.senlin.budgetmaster.ui.category.list.CategoryListViewModel // Import CategoryListViewModel
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditViewModel // Import CategoryEditViewModel
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditViewModel // Import TransactionEditViewModel
+import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire BudgetMaster app
@@ -68,20 +69,16 @@ object ViewModelFactory {
         initializer {
             TransactionEditViewModel(
                 budgetMasterApplication().container.budgetRepository,
-                this.createSavedStateHandle() // Provides SavedStateHandle
-            )
-        }
-
-        /* TODO: Add initializers for other ViewModels
-         initializer {
-             AddEditTransactionViewModel( // This seems to be an old name, TransactionEditViewModel is used
-                 this.createSavedStateHandle(),
-                 budgetMasterApplication().container.budgetRepository
+                 this.createSavedStateHandle() // Provides SavedStateHandle
              )
          }
-         */
-    }
-}
+
+        // Initializer for MainViewModel
+        initializer {
+            MainViewModel(budgetMasterApplication().container.userSettingsRepository)
+        }
+     }
+ }
 
 /**
  * Extension function to queries for [Application] object and returns an instance of

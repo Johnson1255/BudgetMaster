@@ -6,13 +6,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box // Import Box for centering
+import androidx.compose.material3.CircularProgressIndicator // Import loading indicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment // Import Alignment for centering
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext // Import LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp // Import dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavType // Import NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,9 +32,13 @@ import com.senlin.budgetmaster.ui.goal.list.GoalListScreen // Import Goal List S
 import com.senlin.budgetmaster.ui.report.ReportScreen // Import Report Screen
 import com.senlin.budgetmaster.ui.category.list.CategoryListScreen // Import Category List Screen
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditScreen // Import Category Edit Screen
+import com.senlin.budgetmaster.ui.splash.SplashScreen // Import Splash Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditScreen // Import Transaction Edit Screen
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
+import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
+import com.senlin.budgetmaster.ui.ViewModelFactory // Import ViewModelFactory
+import kotlinx.coroutines.launch // Import launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,16 +51,47 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun BudgetMasterApp(navController: NavHostController = rememberNavController()) {
+fun BudgetMasterApp(
+    navController: NavHostController = rememberNavController(),
+    mainViewModel: MainViewModel = viewModel(factory = ViewModelFactory.Factory) // Get MainViewModel
+) {
+    val mainUiState by mainViewModel.uiState.collectAsState() // Collect state
+
     BudgetMasterTheme {
+        val currentBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = currentBackStackEntry?.destination?.route
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            bottomBar = { BottomNavigationBar(navController = navController) } // Add the actual bottom bar
+            bottomBar = {
+                // Only show bottom bar if not on the splash screen
+                if (currentRoute != Screen.Splash.route) {
+                    BottomNavigationBar(navController = navController)
+                }
+            }
         ) { innerPadding ->
-            AppNavHost(
-                navController = navController,
-                modifier = Modifier.padding(innerPadding)
-            )
+            // Determine start destination based on ViewModel state
+            val startDestination = when (mainUiState.initialLanguageSet) {
+                true -> Screen.Dashboard.route // Language set, go to Dashboard
+                false -> Screen.Splash.route   // Language not set, go to Splash
+                null -> null // Still loading preference
+            }
+
+            if (startDestination != null) {
+                AppNavHost(
+                    navController = navController,
+                    startDestination = startDestination, // Pass the determined start destination
+                    modifier = Modifier.padding(innerPadding)
+                )
+            } else {
+                // Show a loading indicator while checking preference
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }
@@ -58,28 +99,52 @@ fun BudgetMasterApp(navController: NavHostController = rememberNavController()) 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    startDestination: String, // Receive start destination
     modifier: Modifier = Modifier
+    // Removed repository injection here, will get it inside composable where needed or via ViewModel
 ) {
+    // Get repository instance here if needed directly, or rely on ViewModels
+    val userSettingsRepository = (LocalContext.current.applicationContext as BudgetMasterApplication).container.userSettingsRepository
+    val scope = rememberCoroutineScope() // Coroutine scope for saving preference
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route, // Start on Dashboard
+        startDestination = startDestination, // Use the determined start destination
         modifier = modifier
-    ) {
-        composable(Screen.Dashboard.route) {
+    ) { // Ensure this lambda structure is correct
+        composable(Screen.Splash.route) { // Correct composable definition
+            SplashScreen(
+                onLanguageSelected = { languageCode -> // Correct lambda usage
+                    scope.launch { // Correct coroutine launch
+                        userSettingsRepository.saveLanguagePreference(languageCode)
+                        // TODO: Update app locale if necessary (requires more complex setup)
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true } // Remove splash from back stack
+                        }
+                    }
+                }
+            )
+        } // End composable(Screen.Splash.route)
+
+        composable(Screen.Dashboard.route) { // Correct composable definition
             DashboardScreen(modifier = Modifier) // Use the actual Dashboard screen
-        }
-        composable(Screen.Transactions.route) {
+        } // End composable(Screen.Dashboard.route)
+
+        composable(Screen.Transactions.route) { // Correct composable definition
             TransactionListScreen(navController = navController) // Use the actual screen
-        }
+        } // End composable(Screen.Transactions.route)
+
         // Use GoalList route and screen
-        composable(Screen.GoalList.route) {
+        composable(Screen.GoalList.route) { // Correct composable definition
             GoalListScreen(navController = navController)
-        }
-        composable(Screen.Reports.route) {
+        } // End composable(Screen.GoalList.route)
+
+        composable(Screen.Reports.route) { // Correct composable definition
             ReportScreen(modifier = Modifier) // Use the actual Report screen
-        }
+        } // End composable(Screen.Reports.route)
+
         // Replace Placeholder with actual Category List Screen
-        composable(Screen.CategoryList.route) {
+        composable(Screen.CategoryList.route) { // Correct composable definition
             CategoryListScreen(
                 onAddCategoryClick = {
                     navController.navigate(Screen.CategoryEdit.createRoute(null)) // Navigate to add screen
@@ -88,40 +153,44 @@ fun AppNavHost(
                     navController.navigate(Screen.CategoryEdit.createRoute(categoryId)) // Navigate to edit screen
                 }
             )
-        }
+        } // End composable(Screen.CategoryList.route)
+
         // Add Category Edit Screen route with argument
-        composable(
+        composable( // Correct composable definition
             route = Screen.CategoryEdit.route,
             arguments = listOf(navArgument(Screen.CATEGORY_ID_ARG) {
                 type = NavType.LongType // Use LongType for category ID
                 defaultValue = 0L // Default 0L for adding new category (align with ViewModel)
             })
-        ) {
+        ) { backStackEntry -> // Receive backStackEntry
              CategoryEditScreen(
                  navigateBack = { navController.popBackStack() },
                  onSaveComplete = { navController.popBackStack() }
+                 // ViewModel will get ID from backStackEntry.arguments or SavedStateHandle
              )
-        }
+        } // End composable(Screen.CategoryEdit.route)
+
         // Add Goal Edit Screen route with optional argument
-        composable(
+        composable( // Correct composable definition
             route = Screen.GoalEdit.routeWithArg, // Use routeWithArg
             arguments = Screen.GoalEdit.arguments // Use arguments from Screen object
-        ) {
+        ) { backStackEntry -> // Receive backStackEntry
             // Pass navController for back navigation, ViewModel handles ID retrieval
             GoalEditScreen(navController = navController)
-        }
+        } // End composable(Screen.GoalEdit.route)
+
         // Add Transaction Edit Screen route with optional argument
-        composable(
+        composable( // Correct composable definition
             route = Screen.AddEditTransaction.routeWithArg,
             arguments = Screen.AddEditTransaction.arguments
-        ) {
+        ) { backStackEntry -> // Receive backStackEntry
             TransactionEditScreen(
                 navigateBack = { navController.popBackStack() }
-                // ViewModel will get the transactionId from SavedStateHandle
+                // ViewModel will get the transactionId from SavedStateHandle via backStackEntry
             )
-        }
-    }
-}
+        } // End composable(Screen.AddEditTransaction.route)
+    } // End NavHost
+} // End AppNavHost
 
 // Simple placeholder for screens not yet implemented
 @Composable

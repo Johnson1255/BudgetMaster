@@ -2,7 +2,9 @@ package com.senlin.budgetmaster
 
 import android.app.Application
 import android.content.Context
+// Removed duplicate import
 import com.senlin.budgetmaster.data.db.AppDatabase
+import com.senlin.budgetmaster.data.preferences.UserSettingsRepository // Import UserSettingsRepository
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import com.senlin.budgetmaster.data.repository.OfflineBudgetRepository
 
@@ -22,16 +24,20 @@ class BudgetMasterApplication : Application() {
 
 /**
  * Simple dependency injection container.
- * Holds instances of database and repository.
+ * Holds instances of database, repository, and user settings.
  */
-class AppContainer(context: Context) {
+class AppContainer(private val context: Context) { // Make context a property if needed by multiple lazy initializers
     // Lazily initialize database and repository
     private val database by lazy { AppDatabase.getDatabase(context) }
     val budgetRepository: BudgetRepository by lazy {
         OfflineBudgetRepository(
-            database.transactionDao(),
-            database.categoryDao(),
-            database.goalDao()
+            transactionDao = database.transactionDao(),
+            categoryDao = database.categoryDao(),
+            goalDao = database.goalDao()
         )
+    }
+    // Lazily initialize UserSettingsRepository
+    val userSettingsRepository: UserSettingsRepository by lazy {
+        UserSettingsRepository(context)
     }
 }
