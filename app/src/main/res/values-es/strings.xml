@@ -4,4 +4,8 @@
     <string name="splash_select_language">Por favor selecciona tu idioma:</string>
     <string name="language_english">Inglés</string>
     <string name="language_spanish">Español</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Configuración</string>
+    <string name="language_setting_title">Idioma</string>
 </resources>
