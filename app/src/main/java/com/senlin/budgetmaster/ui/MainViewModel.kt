@@ -8,16 +8,21 @@ import kotlinx.coroutines.flow.StateFlow // Add StateFlow import
 import kotlinx.coroutines.flow.map // Add map import
 import kotlinx.coroutines.flow.stateIn // Add stateIn import
 
-// Simple state holder for the Main Activity/App composable
+// State holder for the Main Activity/App composable
 data class MainUiState(
-    val initialLanguageSet: Boolean? = null // null means loading, true/false otherwise
+    val initialLanguageSet: Boolean? = null, // null means loading, true/false otherwise
+    val selectedLanguageCode: String? = null // Holds the current language code, null if loading
 )
 
 class MainViewModel(userSettingsRepository: UserSettingsRepository) : ViewModel() {
 
     val uiState: StateFlow<MainUiState> = userSettingsRepository.languagePreference
         .map { languageCode ->
-            MainUiState(initialLanguageSet = languageCode != null)
+            // Update state with both initial set status and the actual code
+            MainUiState(
+                initialLanguageSet = languageCode != null,
+                selectedLanguageCode = languageCode // Keep null if loading, otherwise use the code
+            )
         }
         .stateIn(
             scope = viewModelScope,

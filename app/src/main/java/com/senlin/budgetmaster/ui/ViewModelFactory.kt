@@ -17,6 +17,7 @@ import com.senlin.budgetmaster.ui.category.list.CategoryListViewModel // Import 
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditViewModel // Import CategoryEditViewModel
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditViewModel // Import TransactionEditViewModel
 import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
+import com.senlin.budgetmaster.ui.settings.SettingsViewModel // Import SettingsViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire BudgetMaster app
@@ -76,6 +77,11 @@ object ViewModelFactory {
         // Initializer for MainViewModel
         initializer {
             MainViewModel(budgetMasterApplication().container.userSettingsRepository)
+        }
+
+        // Initializer for SettingsViewModel
+        initializer {
+            SettingsViewModel(budgetMasterApplication().container.userSettingsRepository)
         }
      }
  }

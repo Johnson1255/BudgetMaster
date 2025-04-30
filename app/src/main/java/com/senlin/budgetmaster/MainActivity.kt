@@ -36,9 +36,15 @@ import com.senlin.budgetmaster.ui.splash.SplashScreen // Import Splash Screen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditScreen // Import Transaction Edit Screen
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
+import com.senlin.budgetmaster.ui.settings.SettingsScreen // Import Settings Screen
 import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
+import android.content.Context // Import Context for setLocale
+import android.content.res.Configuration // Import Configuration for setLocale
+import androidx.appcompat.app.AppCompatDelegate // Import AppCompatDelegate for locale setting
+import androidx.core.os.LocaleListCompat // Import LocaleListCompat for locale setting
 import com.senlin.budgetmaster.ui.ViewModelFactory // Import ViewModelFactory
 import kotlinx.coroutines.launch // Import launch
+import java.util.Locale // Import Locale for setLocale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +62,14 @@ fun BudgetMasterApp(
     mainViewModel: MainViewModel = viewModel(factory = ViewModelFactory.Factory) // Get MainViewModel
 ) {
     val mainUiState by mainViewModel.uiState.collectAsState() // Collect state
+    val context = LocalContext.current // Get context for setLocale
+
+    // Effect to update locale when language preference changes
+    LaunchedEffect(mainUiState.selectedLanguageCode) {
+        mainUiState.selectedLanguageCode?.let { code ->
+            setLocale(context, code)
+        }
+    }
 
     BudgetMasterTheme {
         val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -186,9 +200,13 @@ fun AppNavHost(
         ) { backStackEntry -> // Receive backStackEntry
             TransactionEditScreen(
                 navigateBack = { navController.popBackStack() }
-                // ViewModel will get the transactionId from SavedStateHandle via backStackEntry
+                 // ViewModel will get the transactionId from SavedStateHandle via backStackEntry
             )
         } // End composable(Screen.AddEditTransaction.route)
+
+        composable(Screen.Settings.route) { // Add Settings Screen route
+            SettingsScreen() // Use the actual Settings screen
+        } // End composable(Screen.Settings.route)
     } // End NavHost
 } // End AppNavHost
 
@@ -205,4 +223,22 @@ fun PlaceholderScreen(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun DefaultPreview() {
     BudgetMasterApp() // Preview the whole app structure
+}
+
+// Helper function to update the app's locale
+private fun setLocale(context: Context, languageCode: String) {
+    val locale = Locale(languageCode)
+    Locale.setDefault(locale) // Set default locale for the JVM
+
+    // Update app configuration - This is the modern way for API 24+
+    val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+    AppCompatDelegate.setApplicationLocales(appLocale)
+
+    // --- Older method (might still be needed for specific cases or older APIs) ---
+    // val resources = context.resources
+    // val config = Configuration(resources.configuration)
+    // config.setLocale(locale)
+    // context.createConfigurationContext(config) // Create new context with updated config
+    // resources.updateConfiguration(config, resources.displayMetrics) // Update existing resources
+    // -----------------------------------------------------------------------------
 }

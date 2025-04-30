@@ -35,6 +35,7 @@ sealed class Screen(val route: String) {
     }
     // No separate CategoryAdd needed, handled by CategoryEdit with optional ID
     object Reports : Screen("reports")
+    object Settings : Screen("settings") // Added Settings screen route
 
     // Helper function to create routes with arguments
     fun withArgs(vararg args: String): String {

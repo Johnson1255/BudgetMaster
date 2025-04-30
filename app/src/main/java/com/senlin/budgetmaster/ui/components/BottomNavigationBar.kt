@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Assessment // Keep existing specif
 import androidx.compose.material.icons.filled.Category // Import Category icon
 import androidx.compose.material.icons.filled.Dashboard // Keep existing specific imports if needed elsewhere
 import androidx.compose.material.icons.filled.Savings // Keep existing specific imports if needed elsewhere
+import androidx.compose.material.icons.filled.Settings // Import Settings icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,7 +29,8 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Transactions", Icons.Filled.AccountBalanceWallet, Screen.Transactions.route),
         BottomNavItem("Goals", Icons.Filled.Savings, Screen.GoalList.route), // Updated route
         BottomNavItem("Categories", Icons.Filled.Category, Screen.CategoryList.route), // Added Categories item
-        BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route)
+        BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route),
+        BottomNavItem("Settings", Icons.Filled.Settings, Screen.Settings.route) // Added Settings item
     )
 
     NavigationBar {
