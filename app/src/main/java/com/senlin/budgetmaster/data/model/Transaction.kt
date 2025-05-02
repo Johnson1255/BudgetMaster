@@ -19,6 +19,7 @@ data class Transaction(
     val amount: Double,
     val type: TransactionType,
     val categoryId: Long, // Foreign key to Category table
+    val goalId: Long? = null, // Foreign key to Goal table (nullable)
     val date: LocalDate, // Use LocalDate
     val note: String? = null
 )

@@ -24,11 +24,19 @@ class OfflineBudgetRepository(
         transactionDao.getTransactionsByCategoryId(categoryId)
     override suspend fun insertTransaction(transaction: Transaction) {
         transactionDao.insertTransaction(transaction)
+        // If the transaction is linked to a goal, update the goal's current amount
+        transaction.goalId?.let { goalId ->
+            // Assuming positive amount contributes towards the goal
+            // Consider adding logic here if transaction type matters (e.g., only INCOME)
+            goalDao.addAmountToGoal(goalId, transaction.amount)
+        }
     }
     override suspend fun updateTransaction(transaction: Transaction) {
+        // TODO: Handle updates that might change goal association or amount
         transactionDao.updateTransaction(transaction)
     }
     override suspend fun deleteTransaction(transaction: Transaction) {
+        // TODO: Handle deletions that might need to revert goal amount changes
         transactionDao.deleteTransaction(transaction)
     }
 

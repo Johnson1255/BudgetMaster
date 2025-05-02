@@ -27,6 +27,9 @@ interface GoalDao {
     @Query("SELECT * FROM goals ORDER BY creationDate DESC")
     fun getAllGoals(): Flow<List<Goal>>
 
+    @Query("UPDATE goals SET currentAmount = currentAmount + :amount WHERE id = :goalId")
+    suspend fun addAmountToGoal(goalId: Long, amount: Double)
+
     // Optional: Query to update current amount for a goal
     @Query("UPDATE goals SET currentAmount = :newAmount WHERE id = :goalId")
     suspend fun updateGoalAmount(goalId: Long, newAmount: Double)

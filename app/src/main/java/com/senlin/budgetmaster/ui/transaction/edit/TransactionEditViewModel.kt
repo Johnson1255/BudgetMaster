@@ -2,12 +2,14 @@ package com.senlin.budgetmaster.ui.transaction.edit
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-// Removed duplicate imports
 import com.senlin.budgetmaster.data.model.Category
+import com.senlin.budgetmaster.data.model.Goal // Import Goal model
 import com.senlin.budgetmaster.data.model.Transaction
-import com.senlin.budgetmaster.data.model.TransactionType // Import from model
-import com.senlin.budgetmaster.navigation.Screen // Import Screen
+import com.senlin.budgetmaster.data.model.TransactionType
+import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,10 +24,12 @@ import java.util.NoSuchElementException // Keep if needed elsewhere, but likely 
 data class TransactionEditUiState(
     val transactionId: Long? = null, // Use Long for ID
     val amount: String = "", // Keep String for TextField binding
-    val type: TransactionType = TransactionType.EXPENSE, // Use model's enum
+    val type: TransactionType = TransactionType.EXPENSE,
     val selectedCategory: Category? = null,
     val availableCategories: List<Category> = emptyList(),
-    val date: LocalDate = LocalDate.now(), // Use java.time.LocalDate
+    val selectedGoal: Goal? = null, // Add selected goal state
+    val availableGoals: List<Goal> = emptyList(), // Add available goals state
+    val date: LocalDate = LocalDate.now(),
     val note: String = "",
     val isSaving: Boolean = false,
     val isError: Boolean = false,
@@ -59,39 +63,44 @@ class TransactionEditViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Use correct repository method names
-                 val categoriesFlow = repository.getAllCategories() // Corrected method name
-                 val categories = categoriesFlow.first() // Collect first emission
+                // Fetch both categories and goals
+                val categoriesFlow = repository.getAllCategories()
+                val goalsFlow = repository.getAllGoals() // Fetch goals
+                val categories = categoriesFlow.first()
+                val goals = goalsFlow.first() // Collect goals
 
                 if (idToLoad != null) { // Editing existing transaction
-                     val transactionFlow = repository.getTransactionById(idToLoad) // Corrected method name
-                     val transaction = transactionFlow.first()
+                    val transactionFlow = repository.getTransactionById(idToLoad)
+                    val transaction = transactionFlow.first()
 
                     if (transaction != null) {
                         _uiState.update {
                             it.copy(
-                                transactionId = transaction.id, // Long
-                                amount = transaction.amount.toString(), // Convert Double to String
-                                type = transaction.type, // Use type from model
-                                selectedCategory = categories.find { c -> c.id == transaction.categoryId }, // Match Long IDs
+                                transactionId = transaction.id,
+                                amount = transaction.amount.toString(),
+                                type = transaction.type,
+                                selectedCategory = categories.find { c -> c.id == transaction.categoryId },
                                 availableCategories = categories,
-                                date = transaction.date, // java.time.LocalDate
+                                selectedGoal = goals.find { g -> g.id == transaction.goalId }, // Find selected goal
+                                availableGoals = goals, // Set available goals
+                                date = transaction.date,
                                 note = transaction.note ?: "",
                                 isLoading = false
                             )
                         }
                     } else {
-                        // Handle case where transaction ID is invalid but was provided
-                        _uiState.update { it.copy(isLoading = false, isError = true, availableCategories = categories) }
+                        // Handle case where transaction ID is invalid
+                        _uiState.update { it.copy(isLoading = false, isError = true, availableCategories = categories, availableGoals = goals) }
                     }
                 } else {
                     // New transaction mode
                     _uiState.update {
                         it.copy(
                             availableCategories = categories,
+                            availableGoals = goals, // Set available goals
                             isLoading = false,
-                            // Select first category as default if available
-                            selectedCategory = categories.firstOrNull() // Use firstOrNull for safety
+                            selectedCategory = categories.firstOrNull()
+                            // selectedGoal remains null by default for new transactions
                         )
                     }
                 }
@@ -115,7 +124,12 @@ class TransactionEditViewModel(
         _uiState.update { it.copy(selectedCategory = newCategory) }
     }
 
-    fun updateDate(newDate: LocalDate) { // Parameter is java.time.LocalDate
+    // Add function to update selected goal
+    fun updateGoal(newGoal: Goal?) {
+        _uiState.update { it.copy(selectedGoal = newGoal) }
+    }
+
+    fun updateDate(newDate: LocalDate) {
         _uiState.update { it.copy(date = newDate) }
     }
 
@@ -143,14 +157,14 @@ class TransactionEditViewModel(
                     // Use 0L for new transaction ID, Room will auto-generate
                     id = currentState.transactionId ?: 0L,
                     amount = amountDouble, // Use Double
-                    type = currentState.type, // Use TransactionType enum
-                    // Use categoryId (Long), non-null asserted due to check above
-                    categoryId = currentState.selectedCategory!!.id,
-                    date = currentState.date, // Use LocalDate
-                    note = currentState.note.takeIf { it.isNotBlank() } // Store null if note is blank
+                    type = currentState.type,
+                    categoryId = currentState.selectedCategory!!.id, // Non-null asserted
+                    goalId = currentState.selectedGoal?.id, // Include selected goal ID (nullable)
+                    date = currentState.date,
+                    note = currentState.note.takeIf { it.isNotBlank() }
                 )
 
-                if (transactionToSave.id == 0L) {
+                if (transactionToSave.id == 0L) { // Use 0L for comparison
                     // Assuming repository method exists
                     repository.insertTransaction(transactionToSave)
                 } else {

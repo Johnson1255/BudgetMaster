@@ -36,9 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.senlin.budgetmaster.R // Assuming R class is generated correctly
+import com.senlin.budgetmaster.R
 import com.senlin.budgetmaster.data.model.Category
-import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType
+import com.senlin.budgetmaster.data.model.Goal // Import Goal model
+import com.senlin.budgetmaster.data.model.TransactionType
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -77,6 +78,7 @@ fun TransactionEditScreen(
                 onAmountChange = viewModel::updateAmount,
                 onTypeChange = viewModel::updateType,
                 onCategoryChange = viewModel::updateCategory,
+                onGoalChange = viewModel::updateGoal, // Pass goal update function
                 onDateChange = viewModel::updateDate,
                 onNoteChange = viewModel::updateNote,
                 onSaveClick = {
@@ -96,11 +98,11 @@ fun TransactionEditForm(
     onAmountChange: (String) -> Unit,
     onTypeChange: (TransactionType) -> Unit,
     onCategoryChange: (Category) -> Unit,
-    onDateChange: (LocalDate) -> Unit, // Ensure this matches ViewModel
+    onGoalChange: (Goal?) -> Unit, // Add goal change callback
+    onDateChange: (LocalDate) -> Unit,
     onNoteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
-    // Removed duplicated lines below
 ) {
     Column(
         modifier = modifier
@@ -148,6 +150,14 @@ fun TransactionEditForm(
             selectedCategory = uiState.selectedCategory,
             categories = uiState.availableCategories,
             onCategorySelected = onCategoryChange,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Goal Selector (Dropdown) - Added
+        GoalSelector(
+            selectedGoal = uiState.selectedGoal,
+            goals = uiState.availableGoals,
+            onGoalSelected = onGoalChange,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -223,6 +233,63 @@ fun CategorySelector(
                     onClick = { expanded = false },
                     enabled = false,
                     text = { Text("No categories available") } // Use text lambda parameter & Replace with stringResource
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GoalSelector(
+    selectedGoal: Goal?,
+    goals: List<Goal>,
+    onGoalSelected: (Goal?) -> Unit, // Allow null selection for "None"
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedGoalText = selectedGoal?.name ?: "None" // Display "None" if null
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = selectedGoalText, // Show selected goal name or "None"
+            onValueChange = { },
+            readOnly = true,
+            label = { Text("Link to Goal (Optional)") }, // Label indicates optionality
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            // Add "None" option first
+            DropdownMenuItem(
+                onClick = {
+                    onGoalSelected(null) // Pass null for "None"
+                    expanded = false
+                },
+                text = { Text("None") }
+            )
+            // Add actual goals
+            goals.forEach { goal ->
+                DropdownMenuItem(
+                    onClick = {
+                        onGoalSelected(goal)
+                        expanded = false
+                    },
+                    text = { Text(goal.name) }
+                )
+            }
+            if (goals.isEmpty()) {
+                DropdownMenuItem(
+                    onClick = { expanded = false },
+                    enabled = false,
+                    text = { Text("No goals available") }
                 )
             }
         }

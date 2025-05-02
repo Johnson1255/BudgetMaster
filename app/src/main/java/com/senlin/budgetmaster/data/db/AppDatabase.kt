@@ -3,6 +3,7 @@ package com.senlin.budgetmaster.data.db
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
+import androidx.room.AutoMigration
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.senlin.budgetmaster.data.model.Category
@@ -11,8 +12,11 @@ import com.senlin.budgetmaster.data.model.Transaction
 
 @Database(
     entities = [Transaction::class, Category::class, Goal::class],
-    version = 1, // Start with version 1. Increment if schema changes.
-    exportSchema = false // Optional: Set to true to export schema to a folder
+    version = 2, // Incremented version due to schema change
+    exportSchema = true, // Export schema for auto-migration verification
+    autoMigrations = [
+        AutoMigration (from = 1, to = 2) // Define auto-migration from v1 to v2
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -36,8 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "budget_master_database"
                 )
-                // Optional: Add migrations if needed later
-                // .addMigrations(MIGRATION_1_2)
+                // Room handles the migration automatically based on the annotation
                 // Optional: Prepopulate database on creation
                 // .addCallback(roomDatabaseCallback)
                 .build()
