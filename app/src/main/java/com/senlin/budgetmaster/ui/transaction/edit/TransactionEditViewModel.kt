@@ -7,12 +7,14 @@ import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
-import com.senlin.budgetmaster.data.repository.BudgetRepository // Ensure only this one exists
+import com.senlin.budgetmaster.data.repository.BudgetRepository
 import com.senlin.budgetmaster.navigation.Screen
+// import kotlinx.coroutines.channels.Channel // Remove Channel import
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.firstOrNull // Add import for firstOrNull
+import kotlinx.coroutines.flow.firstOrNull
+// import kotlinx.coroutines.flow.receiveAsFlow // Remove receiveAsFlow import
 import java.time.LocalDate
 // Removed unused imports
 
@@ -29,7 +31,8 @@ data class TransactionEditUiState(
     val date: LocalDate = LocalDate.now(),
     val note: String = "",
     val isSaving: Boolean = false,
-    val isError: Boolean = false,
+    @Deprecated("Use errorMessage instead for specific errors") val isError: Boolean = false, // Keep for general errors if needed, but prefer errorMessage
+    val errorMessage: String? = null, // For specific error messages like insufficient funds
     val isLoading: Boolean = true,
     val goalContributionCategoryId: Long? = null // To store the ID of the placeholder category
 )
@@ -41,6 +44,11 @@ class TransactionEditViewModel(
 
     private val _uiState = MutableStateFlow(TransactionEditUiState())
     val uiState: StateFlow<TransactionEditUiState> = _uiState.asStateFlow()
+
+    // SharedFlow for signalling save success event (more robust for one-time events)
+    private val _saveSuccessEvent = MutableSharedFlow<Unit>(replay = 0) // Use SharedFlow with replay=0
+    val saveSuccessEvent = _saveSuccessEvent.asSharedFlow() // Expose as SharedFlow
+
 
     // Get transactionId as Long? from SavedStateHandle
     // Get transactionId as Long? from SavedStateHandle
@@ -184,7 +192,8 @@ class TransactionEditViewModel(
                         _uiState.update { state ->
                             state.copy(
                                 isSaving = false,
-                                isError = true // Consider adding a specific error message here
+                                // isError = true // Keep or remove based on general error handling needs
+                                errorMessage = "Insufficient funds in the selected goal." // Set specific message
                             )
                         }
                         return@launch // Stop the saving process
@@ -229,11 +238,20 @@ class TransactionEditViewModel(
                  } else {
                      repository.updateTransaction(transactionToSave)
                  }
-                _uiState.update { state -> state.copy(isSaving = false) } // Use explicit 'state'
+                _uiState.update { state -> state.copy(isSaving = false) } // Reset saving state
+                _saveSuccessEvent.emit(Unit) // Emit success signal!
             } catch (e: Exception) {
                  // Log exception properly
+                 // Ensure isSaving is false even on error
                 _uiState.update { state -> state.copy(isSaving = false, isError = true) } // Use explicit 'state'
             }
          }
      }
+
+    /**
+     * Clears the current error message, typically after the user acknowledges it.
+     */
+    fun dismissErrorDialog() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
 }

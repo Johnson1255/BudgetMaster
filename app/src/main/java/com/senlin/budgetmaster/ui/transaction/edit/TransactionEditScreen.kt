@@ -21,14 +21,19 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+// Add AlertDialog and TextButton imports
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // Import TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState // Import rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +58,29 @@ fun TransactionEditScreen(
     viewModel: TransactionEditViewModel = viewModel(factory = ViewModelFactory.Factory) // Use your factory
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentNavigateBack by rememberUpdatedState(navigateBack) // Ensure latest lambda
+
+    // --- Listen for Save Success ---
+    LaunchedEffect(viewModel) { // Key effect to viewModel instance
+        viewModel.saveSuccessEvent.collect {
+            currentNavigateBack() // Use the updated state lambda
+        }
+    }
+
+    // --- Show Error Dialog ---
+    uiState.errorMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissErrorDialog() }, // Dismiss if clicked outside
+            title = { Text("Error") }, // Or a more specific title like "Validation Error"
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissErrorDialog() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+    // --- End Error Dialog ---
 
     Scaffold(
         topBar = {
@@ -81,9 +109,8 @@ fun TransactionEditScreen(
                 onDateChange = viewModel::updateDate,
                 onNoteChange = viewModel::updateNote,
                 onSaveClick = {
-                    viewModel.saveTransaction()
-                    // Consider observing a save success state before navigating back
-                    navigateBack() // Navigate back after save attempt
+                    viewModel.saveTransaction() // Only call save here
+                    // Navigation is handled by LaunchedEffect listening to saveSuccessEvent
                 },
                 modifier = Modifier.padding(paddingValues)
             )
