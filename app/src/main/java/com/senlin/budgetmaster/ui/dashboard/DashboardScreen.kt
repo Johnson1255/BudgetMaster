@@ -1,9 +1,29 @@
 package com.senlin.budgetmaster.ui.dashboard
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size // Import size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons // Import Icons
+import androidx.compose.material.icons.filled.ArrowDownward // Import specific icons
+import androidx.compose.material.icons.filled.ArrowUpward // Import specific icons
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider // Keep for potential future use, but removing from lists
+import androidx.compose.material3.Icon // Import Icon
+import androidx.compose.material3.LinearProgressIndicator // Import LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -68,9 +88,10 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
         if (uiState.recentTransactions.isEmpty()) {
             item { Text("No recent transactions.") }
         } else {
+            // Wrap items in Cards instead of using dividers
             items(uiState.recentTransactions) { transaction ->
-                TransactionItem(transaction = transaction)
-                HorizontalDivider() // Add a divider between items
+                TransactionItemCard(transaction = transaction)
+                // Remove HorizontalDivider
             }
         }
 
@@ -81,9 +102,10 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
         if (uiState.goals.isEmpty()) {
             item { Text("No saving goals set.") }
         } else {
+            // Wrap items in Cards instead of using dividers
             items(uiState.goals) { goal ->
-                GoalItem(goal = goal)
-                HorizontalDivider() // Add a divider between items
+                GoalItemCard(goal = goal)
+                // Remove HorizontalDivider
             }
         }
     }
@@ -122,57 +144,89 @@ fun SectionTitle(title: String, modifier: Modifier = Modifier) {
     )
 }
 
-
 @Composable
-fun TransactionItem(transaction: Transaction, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+fun TransactionItemCard(transaction: Transaction, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Subtle elevation
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = transaction.note ?: "Transaction", // Use note or default text
-                style = MaterialTheme.typography.bodyLarge
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp), // Adjust padding
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Add Icon based on type
+            val icon = if (transaction.type == TransactionType.INCOME) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward
+            val iconColor = if (transaction.type == TransactionType.INCOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            Icon(
+                imageVector = icon,
+                contentDescription = transaction.type.name,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp).padding(end = 12.dp) // Add padding to icon
             )
+
+            // Transaction Details
+            Column(modifier = Modifier.weight(1f)) { // Take available space
+                Text(
+                    text = transaction.note ?: transaction.type.name, // Use note or type name
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = formatDate(transaction.date),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Amount
             Text(
-                text = formatDate(transaction.date),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = formatCurrency(transaction.amount),
+                style = MaterialTheme.typography.bodyLarge,
+                color = iconColor // Use the same color as the icon
             )
         }
-        Text(
-            text = formatCurrency(transaction.amount),
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (transaction.type == TransactionType.INCOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-        )
     }
 }
 
 @Composable
-fun GoalItem(goal: Goal, modifier: Modifier = Modifier) {
-    // Basic display for a goal - can be enhanced later
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+fun GoalItemCard(goal: Goal, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Text(
-            text = goal.name,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        // TODO: Add progress visualization later
-        Text(
-            text = "${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}",
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column( // Use Column for Goal Name and Progress
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp) // Adjust padding
+        ) {
+            Row( // Row for Goal Name and Amount Text
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = goal.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = "${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Use a less prominent color
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp)) // Add space before progress bar
+
+            // Progress Indicator
+            val progress = if (goal.targetAmount > 0) (goal.currentAmount / goal.targetAmount).toFloat() else 0f
+            LinearProgressIndicator(
+                progress = { progress.coerceIn(0f, 1f) }, // Ensure progress is between 0 and 1
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
-
 
 // --- Helper Functions ---
 
