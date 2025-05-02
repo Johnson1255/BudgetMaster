@@ -11,7 +11,8 @@ import com.senlin.budgetmaster.data.repository.BudgetRepository // Ensure only t
 import com.senlin.budgetmaster.navigation.Screen
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.async // Add import for async
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.firstOrNull // Add import for firstOrNull
 import java.time.LocalDate
 // Removed unused imports
 
@@ -164,16 +165,34 @@ class TransactionEditViewModel(
          }
 
          val amountDouble = currentState.amount.toDoubleOrNull()
-         if (amountDouble == null) {
-             _uiState.update { state -> state.copy(isError = true) } // Use explicit 'state'
+         if (amountDouble == null || amountDouble <= 0) { // Also ensure amount is positive
+             _uiState.update { state -> state.copy(isError = true, isSaving = false) } // Set error, stop saving
              return
          }
 
-        _uiState.update { state -> state.copy(isSaving = true, isError = false) } // Use explicit 'state'
+        _uiState.update { state -> state.copy(isSaving = true, isError = false) }
 
         viewModelScope.launch {
              try {
                 val selectedItem = currentState.selectedItem // Shadow variable for smart casting
+
+                // --- Validation for Goal Overspending ---
+                if (selectedItem is Goal && currentState.type == TransactionType.EXPENSE) {
+                    val goal = repository.getGoalById(selectedItem.id).firstOrNull()
+                    if (goal != null && amountDouble > goal.currentAmount) {
+                        // Trying to spend more than available in the goal
+                        _uiState.update { state ->
+                            state.copy(
+                                isSaving = false,
+                                isError = true // Consider adding a specific error message here
+                            )
+                        }
+                        return@launch // Stop the saving process
+                    }
+                }
+                // --- End Validation ---
+
+
                 val categoryIdToSave: Long
                 val goalIdToSave: Long?
 
@@ -189,13 +208,15 @@ class TransactionEditViewModel(
                     }
                     else -> {
                         // Should not happen due to initial check, but handle defensively
-                        throw IllegalStateException("Selected item is not Category or Goal")
+                        _uiState.update { it.copy(isSaving = false, isError = true) }
+                        return@launch // Stop if item is somehow null or wrong type
+                        // throw IllegalStateException("Selected item is not Category or Goal") // Alternative
                     }
                 }
 
                 val transactionToSave = Transaction(
                     id = currentState.transactionId ?: 0L, // Use 0L for new transaction
-                    amount = amountDouble,
+                    amount = amountDouble, // Use validated amount
                     type = currentState.type,
                     categoryId = categoryIdToSave,
                     goalId = goalIdToSave,
