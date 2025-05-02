@@ -37,9 +37,12 @@ class DashboardViewModel(private val budgetRepository: BudgetRepository) : ViewM
             val goalsFlow = budgetRepository.getAllGoals()
 
             combine(transactionsFlow, goalsFlow) { transactions, goals ->
-                val balance = transactions.sumOf {
+                // Filter transactions to exclude those linked to a goal for balance calculation
+                val nonGoalTransactions = transactions.filter { it.goalId == null }
+                val balance = nonGoalTransactions.sumOf {
                     if (it.type == TransactionType.INCOME) it.amount else -it.amount
                 }
+                // Keep showing all recent transactions (or filter if preferred)
                 val recentTransactions = transactions.sortedByDescending { it.date }.take(5)
 
                 DashboardUiState(
