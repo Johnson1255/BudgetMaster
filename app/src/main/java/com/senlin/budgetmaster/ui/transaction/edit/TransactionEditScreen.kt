@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.senlin.budgetmaster.R
 import com.senlin.budgetmaster.data.model.Category
-import com.senlin.budgetmaster.data.model.Goal // Import Goal model
+import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.TransactionType
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import java.time.LocalDate
@@ -74,11 +74,10 @@ fun TransactionEditScreen(
         }
          else {
             TransactionEditForm(
-                uiState = uiState,
+                uiState = uiState, // Ensure only one uiState argument persists
                 onAmountChange = viewModel::updateAmount,
                 onTypeChange = viewModel::updateType,
-                onCategoryChange = viewModel::updateCategory,
-                onGoalChange = viewModel::updateGoal, // Pass goal update function
+                onSelectedItemChange = viewModel::updateSelectedItem, // Use combined callback
                 onDateChange = viewModel::updateDate,
                 onNoteChange = viewModel::updateNote,
                 onSaveClick = {
@@ -92,13 +91,12 @@ fun TransactionEditScreen(
     }
 }
 
-@Composable
+@Composable // Ensure only one @Composable annotation persists
 fun TransactionEditForm(
     uiState: TransactionEditUiState,
     onAmountChange: (String) -> Unit,
     onTypeChange: (TransactionType) -> Unit,
-    onCategoryChange: (Category) -> Unit,
-    onGoalChange: (Goal?) -> Unit, // Add goal change callback
+    onSelectedItemChange: (Any?) -> Unit, // Combined callback
     onDateChange: (LocalDate) -> Unit,
     onNoteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
@@ -144,24 +142,15 @@ fun TransactionEditForm(
             }
         }
 
-
-        // Category Selector (Dropdown)
-        CategorySelector(
-            selectedCategory = uiState.selectedCategory,
-            categories = uiState.availableCategories,
-            onCategorySelected = onCategoryChange,
+        // Combined Category/Goal Selector
+        CombinedSelector(
+            selectedItem = uiState.selectedItem,
+            items = uiState.availableItems,
+            onItemSelected = onSelectedItemChange,
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Goal Selector (Dropdown) - Added
-        GoalSelector(
-            selectedGoal = uiState.selectedGoal,
-            goals = uiState.availableGoals,
-            onGoalSelected = onGoalChange,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Date Picker
+         // Date Picker
         DatePickerField(
             selectedDate = uiState.date,
             onDateSelected = onDateChange,
@@ -180,7 +169,7 @@ fun TransactionEditForm(
         // Save Button
         Button(
             onClick = onSaveClick,
-            enabled = !uiState.isSaving && uiState.selectedCategory != null && uiState.amount.isNotBlank(), // Basic validation
+            enabled = !uiState.isSaving && uiState.selectedItem != null && uiState.amount.isNotBlank(), // Use selectedItem for validation
             modifier = Modifier.align(Alignment.End)
         ) {
             if (uiState.isSaving) {
@@ -192,63 +181,24 @@ fun TransactionEditForm(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class) // Use M3 Experimental API
-@Composable
-fun CategorySelector(
-    selectedCategory: Category?,
-    categories: List<Category>,
-    onCategorySelected: (Category) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedCategory?.name ?: "Select Category", // Replace with stringResource
-            onValueChange = { }, // Read-only
-            readOnly = true,
-            label = { Text("Category") }, // Replace with stringResource
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            categories.forEach { category ->
-                DropdownMenuItem(
-                    onClick = {
-                        onCategorySelected(category)
-                        expanded = false
-                    },
-                    text = { Text(category.name) } // Use text lambda parameter
-                )
-            }
-             if (categories.isEmpty()) {
-                DropdownMenuItem(
-                    onClick = { expanded = false },
-                    enabled = false,
-                    text = { Text("No categories available") } // Use text lambda parameter & Replace with stringResource
-                )
-            }
-        }
-    }
-}
+// Removed CategorySelector and GoalSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoalSelector(
-    selectedGoal: Goal?,
-    goals: List<Goal>,
-    onGoalSelected: (Goal?) -> Unit, // Allow null selection for "None"
+fun CombinedSelector(
+    selectedItem: Any?, // Can be Category or Goal
+    items: List<Any>, // Combined list of Categories and Goals
+    onItemSelected: (Any?) -> Unit, // Callback for selection
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedGoalText = selectedGoal?.name ?: "None" // Display "None" if null
+
+    // Determine the display name based on the type of the selected item
+    val selectedItemText = when (selectedItem) {
+        is Category -> selectedItem.name
+        is Goal -> selectedItem.name + " (Goal)" // Indicate it's a goal
+        else -> "Select Category or Goal" // Placeholder text
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -256,46 +206,50 @@ fun GoalSelector(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selectedGoalText, // Show selected goal name or "None"
-            onValueChange = { },
+            value = selectedItemText,
+            onValueChange = { }, // Read-only
             readOnly = true,
-            label = { Text("Link to Goal (Optional)") }, // Label indicates optionality
+            label = { Text("Category / Goal") }, // Updated label
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().menuAnchor() // Add menuAnchor modifier for M3
         )
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            // Add "None" option first
-            DropdownMenuItem(
-                onClick = {
-                    onGoalSelected(null) // Pass null for "None"
-                    expanded = false
-                },
-                text = { Text("None") }
-            )
-            // Add actual goals
-            goals.forEach { goal ->
+            // Add a "None" or default option if needed, depending on requirements
+            // DropdownMenuItem(
+            //     onClick = {
+            //         onItemSelected(null) // Allow deselecting?
+            //         expanded = false
+            //     },
+            //     text = { Text("None") }
+            // )
+
+            items.forEach { item ->
+                val itemText = when (item) {
+                    is Category -> item.name
+                    is Goal -> item.name + " (Goal)" // Indicate goal in the list
+                    else -> "Unknown Item" // Should not happen
+                }
                 DropdownMenuItem(
                     onClick = {
-                        onGoalSelected(goal)
+                        onItemSelected(item)
                         expanded = false
                     },
-                    text = { Text(goal.name) }
+                    text = { Text(itemText) }
                 )
             }
-            if (goals.isEmpty()) {
+            if (items.isEmpty()) {
                 DropdownMenuItem(
                     onClick = { expanded = false },
                     enabled = false,
-                    text = { Text("No goals available") }
+                    text = { Text("No categories or goals available") }
                 )
             }
         }
     }
 }
-
 
 @Composable
 fun DatePickerField(
