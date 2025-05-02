@@ -6,8 +6,10 @@ import com.senlin.budgetmaster.data.db.TransactionDao
 import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
+import com.senlin.budgetmaster.data.model.TransactionType
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate // Use LocalDate instead of Date
+import kotlinx.coroutines.flow.firstOrNull // Import firstOrNull
+import java.time.LocalDate
 
 class OfflineBudgetRepository(
     private val transactionDao: TransactionDao,
@@ -26,17 +28,53 @@ class OfflineBudgetRepository(
         transactionDao.insertTransaction(transaction)
         // If the transaction is linked to a goal, update the goal's current amount
         transaction.goalId?.let { goalId ->
-            // Assuming positive amount contributes towards the goal
-            // Consider adding logic here if transaction type matters (e.g., only INCOME)
-            goalDao.addAmountToGoal(goalId, transaction.amount)
+            val amountToAdd = if (transaction.type == TransactionType.INCOME) {
+                transaction.amount
+            } else { // Assuming EXPENSE is the only other type affecting goals
+                -transaction.amount // Subtract expense amount
+            }
+            goalDao.addAmountToGoal(goalId, amountToAdd)
         }
     }
     override suspend fun updateTransaction(transaction: Transaction) {
-        // TODO: Handle updates that might change goal association or amount
+        // Get the old transaction state BEFORE updating
+        val oldTransaction = transactionDao.getTransactionById(transaction.id).firstOrNull()
+
+        // 1. Revert old transaction's effect on its goal (if any)
+        oldTransaction?.goalId?.let { oldGoalId ->
+            val amountToRevert = if (oldTransaction.type == TransactionType.INCOME) {
+                -oldTransaction.amount // Subtract old income
+            } else {
+                oldTransaction.amount // Add back old expense
+            }
+            goalDao.addAmountToGoal(oldGoalId, amountToRevert)
+        }
+
+        // 2. Apply new transaction's effect on its goal (if any)
+        transaction.goalId?.let { newGoalId ->
+            val amountToAdd = if (transaction.type == TransactionType.INCOME) {
+                transaction.amount // Add new income
+            } else {
+                -transaction.amount // Subtract new expense
+            }
+            goalDao.addAmountToGoal(newGoalId, amountToAdd)
+        }
+
+        // 3. Update the transaction itself
         transactionDao.updateTransaction(transaction)
     }
     override suspend fun deleteTransaction(transaction: Transaction) {
-        // TODO: Handle deletions that might need to revert goal amount changes
+        // Revert the transaction's effect on its goal (if any) BEFORE deleting
+        transaction.goalId?.let { goalId ->
+            val amountToRevert = if (transaction.type == TransactionType.INCOME) {
+                -transaction.amount // Subtract income
+            } else {
+                transaction.amount // Add back expense
+            }
+            goalDao.addAmountToGoal(goalId, amountToRevert)
+        }
+
+        // Delete the transaction itself
         transactionDao.deleteTransaction(transaction)
     }
 
