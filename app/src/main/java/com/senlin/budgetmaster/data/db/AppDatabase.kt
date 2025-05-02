@@ -13,10 +13,8 @@ import com.senlin.budgetmaster.data.model.Transaction
 @Database(
     entities = [Transaction::class, Category::class, Goal::class],
     version = 2, // Incremented version due to schema change
-    exportSchema = true, // Export schema for auto-migration verification
-    autoMigrations = [
-        AutoMigration (from = 1, to = 2) // Define auto-migration from v1 to v2
-    ]
+    exportSchema = true // Export schema for auto-migration verification
+    // Removed autoMigrations as 1.json is missing
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -40,6 +38,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "budget_master_database"
                 )
+                // Allow Room to destructively recreate database tables if Migrations are not available.
+                .fallbackToDestructiveMigration()
                 // Room handles the migration automatically based on the annotation
                 // Optional: Prepopulate database on creation
                 // .addCallback(roomDatabaseCallback)

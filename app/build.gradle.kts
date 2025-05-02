@@ -6,11 +6,6 @@ plugins {
     alias(libs.plugins.androidx.room) // Apply Room plugin
 }
 
-// Configure KSP for Room schema location
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
 android {
     namespace = "com.senlin.budgetmaster"
     compileSdk = 35
@@ -43,6 +38,10 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    // Configure Room schema location using the Room plugin DSL (Inside android block)
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
