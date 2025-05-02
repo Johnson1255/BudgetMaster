@@ -18,7 +18,8 @@ class Converters {
 
     @TypeConverter
     fun localDateToEpochDay(date: LocalDate?): Long? {
-        return date?.toEpochDay()
+        // Convert LocalDate to milliseconds since epoch at the start of the day in the system's default timezone
+        return date?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
     }
 
     @TypeConverter
