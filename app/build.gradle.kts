@@ -2,7 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.ksp) // Add KSP plugin
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.androidx.room) // Apply Room plugin
+}
+
+// Configure KSP for Room schema location
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 android {
