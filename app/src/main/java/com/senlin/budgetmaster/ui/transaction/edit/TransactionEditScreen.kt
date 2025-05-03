@@ -28,7 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton // Import TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.IconButton // Import IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Import Back Arrow Icon
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
@@ -85,8 +87,15 @@ fun TransactionEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (uiState.transactionId == null) "Add Transaction" else "Edit Transaction") }, // Adjust title based on mode
-                // Add navigation icon if needed
+                title = { Text(if (uiState.transactionId == null) stringResource(R.string.add_transaction_title) else stringResource(R.string.edit_transaction_title)) }, // Use string resources
+                navigationIcon = {
+                    IconButton(onClick = currentNavigateBack) { // Use updated state lambda
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_back_description) // Add content description
+                        )
+                    }
+                }
             )
         },
         modifier = modifier
@@ -140,14 +149,14 @@ fun TransactionEditForm(
         OutlinedTextField(
             value = uiState.amount,
             onValueChange = onAmountChange,
-            label = { Text("Amount") }, // Replace with stringResource
+            label = { Text(stringResource(R.string.amount_label)) }, // Use stringResource
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
 
         // Transaction Type Radio Buttons
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Type:", style = MaterialTheme.typography.bodyLarge) // Use M3 Typography & Replace with stringResource
+            Text(stringResource(R.string.type_label), style = MaterialTheme.typography.bodyLarge) // Use stringResource
             Spacer(Modifier.width(8.dp)) // Use dp import
             Row {
                 TransactionType.values().forEach { type -> // Use imported TransactionType
@@ -188,7 +197,7 @@ fun TransactionEditForm(
         OutlinedTextField(
             value = uiState.note,
             onValueChange = onNoteChange,
-            label = { Text("Note (Optional)") }, // Replace with stringResource
+            label = { Text(stringResource(R.string.note_label_optional)) }, // Use stringResource
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3
         )
@@ -202,7 +211,7 @@ fun TransactionEditForm(
             if (uiState.isSaving) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp)) // M3 CircularProgressIndicator, color is handled by theme
             } else {
-                Text("Save") // Replace with stringResource
+                Text(stringResource(R.string.save_button)) // Use stringResource
             }
         }
     }
@@ -236,7 +245,7 @@ fun CombinedSelector(
             value = selectedItemText,
             onValueChange = { }, // Read-only
             readOnly = true,
-            label = { Text("Category / Goal") }, // Updated label
+            label = { Text(stringResource(R.string.category_goal_label)) }, // Use stringResource
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor() // Add menuAnchor modifier for M3
         )
@@ -271,7 +280,7 @@ fun CombinedSelector(
                 DropdownMenuItem(
                     onClick = { expanded = false },
                     enabled = false,
-                    text = { Text("No categories or goals available") }
+                    text = { Text(stringResource(R.string.no_categories_goals_available)) } // Use stringResource
                 )
             }
         }
@@ -300,11 +309,11 @@ fun DatePickerField(
         value = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE), // Or a more user-friendly format
         onValueChange = {}, // Not directly editable
         readOnly = true,
-        label = { Text("Date") }, // Replace with stringResource
+        label = { Text(stringResource(R.string.date_label)) }, // Use stringResource
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.DateRange,
-                contentDescription = "Select Date", // Replace with stringResource
+                contentDescription = stringResource(R.string.select_date_description), // Use stringResource
                 modifier = Modifier.clickable { datePickerDialog.show() }
             )
         },

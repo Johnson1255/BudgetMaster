@@ -8,4 +8,17 @@
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="language_setting_title">Language</string>
+
+    <!-- Transaction Edit Screen -->
+    <string name="add_transaction_title">Add Transaction</string>
+    <string name="edit_transaction_title">Edit Transaction</string>
+    <string name="navigate_back_description">Navigate back</string>
+    <string name="amount_label">Amount</string>
+    <string name="type_label">Type:</string>
+    <string name="note_label_optional">Note (Optional)</string>
+    <string name="save_button">Save</string>
+    <string name="category_goal_label">Category / Goal</string>
+    <string name="no_categories_goals_available">No categories or goals available</string>
+    <string name="date_label">Date</string>
+    <string name="select_date_description">Select Date</string>
 </resources>

@@ -8,4 +8,17 @@
     <!-- Settings Screen -->
     <string name="settings_title">Configuración</string>
     <string name="language_setting_title">Idioma</string>
+
+    <!-- Transaction Edit Screen -->
+    <string name="add_transaction_title">Añadir Transacción</string>
+    <string name="edit_transaction_title">Editar Transacción</string>
+    <string name="navigate_back_description">Navegar hacia atrás</string>
+    <string name="amount_label">Monto</string>
+    <string name="type_label">Tipo:</string>
+    <string name="note_label_optional">Nota (Opcional)</string>
+    <string name="save_button">Guardar</string>
+    <string name="category_goal_label">Categoría / Meta</string>
+    <string name="no_categories_goals_available">No hay categorías o metas disponibles</string>
+    <string name="date_label">Fecha</string>
+    <string name="select_date_description">Seleccionar Fecha</string>
 </resources>
