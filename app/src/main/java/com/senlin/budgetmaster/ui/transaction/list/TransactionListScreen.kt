@@ -27,8 +27,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Button // Add Button import
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api // Needed for DatePicker
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable // Add rememberSaveable import
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +49,9 @@ import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType from model
 import com.senlin.budgetmaster.navigation.Screen
 import com.senlin.budgetmaster.ui.ViewModelFactory // Use ViewModelFactory
+import java.time.Instant // Add Instant import
 import java.time.LocalDate
+import java.time.ZoneId // Add ZoneId import
 import java.time.format.DateTimeFormatter // Use DateTimeFormatter for LocalDate
 import java.time.format.FormatStyle // For localized date formats
 import java.util.Locale // Keep Locale for formatter
@@ -84,20 +95,78 @@ fun TransactionListScreen(
                     // Navigate to Add/Edit screen for editing the selected transaction
                     navController.navigate(Screen.AddEditTransaction.createRoute(transactionId))
                 },
+                viewModel = viewModel, // Pass the viewModel down
                 modifier = Modifier.padding(paddingValues)
             )
         }
     }
 }
 
+// Remove the first, incorrect definition that was duplicated.
+
+@OptIn(ExperimentalMaterial3Api::class) // Opt-in for DatePicker API
 @Composable
 private fun TransactionListContent(
     transactions: List<Transaction>,
     categoryMap: Map<Long, String>, // Accept the map
     isLoading: Boolean,
     onTransactionClick: (Long) -> Unit,
+    viewModel: TransactionListViewModel, // Add viewModel parameter
     modifier: Modifier = Modifier
 ) {
+    // Get dates from ViewModel state
+    val startDate by viewModel.startDate.collectAsState()
+    val endDate by viewModel.endDate.collectAsState()
+
+    // State for showing Date Pickers
+    val showStartDatePicker = rememberSaveable { mutableStateOf(false) }
+    val showEndDatePicker = rememberSaveable { mutableStateOf(false) }
+    val startDateState = rememberDatePickerState()
+    val endDateState = rememberDatePickerState(initialSelectedDateMillis = endDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli())
+
+
+    // --- Date Picker Dialogs ---
+    if (showStartDatePicker.value) {
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker.value = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showStartDatePicker.value = false
+                    startDateState.selectedDateMillis?.let { millis ->
+                        val selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                        viewModel.setStartDate(selectedDate) // Call ViewModel
+                    } ?: viewModel.setStartDate(null) // Handle case where date is cleared in picker
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker.value = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = startDateState)
+        }
+    }
+
+    if (showEndDatePicker.value) {
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker.value = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showEndDatePicker.value = false
+                    endDateState.selectedDateMillis?.let { millis ->
+                         val selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                         viewModel.setEndDate(selectedDate) // Call ViewModel
+                    } ?: viewModel.setEndDate(null) // Handle case where date is cleared in picker
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker.value = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = endDateState)
+        }
+    }
+
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -106,9 +175,29 @@ private fun TransactionListContent(
         Text(
             "Transactions",
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 8.dp) // Reduced bottom padding
         )
 
+        // --- Date Filter Row ---
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = { showStartDatePicker.value = true }) {
+                Text(startDate?.let { formatDate(it) } ?: "Start Date") // Use startDate from ViewModel
+            }
+            Text("to", modifier = Modifier.padding(horizontal = 8.dp))
+            Button(onClick = { showEndDatePicker.value = true }) {
+                Text(endDate?.let { formatDate(it) } ?: "End Date") // Use endDate from ViewModel
+            }
+             // Add Clear Button
+            TextButton(onClick = { viewModel.clearDateFilter() }) {
+                Text("Clear")
+            }
+        }
+
+        // --- Transaction List ---
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
