@@ -1,13 +1,18 @@
 package com.senlin.budgetmaster.ui.report
 
 import androidx.compose.foundation.layout.*
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn // Import LazyColumn
 import androidx.compose.foundation.lazy.items // Import items extension
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Share // Import Share icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext // Import LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -39,6 +44,15 @@ fun ReportScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val reportTypes = ReportType.values() // Get all report types
+    val context = LocalContext.current // Get context for sharing
+
+    // Effect to launch share sheet when CSV content is ready
+    LaunchedEffect(uiState.csvContentToShare) {
+        uiState.csvContentToShare?.let { csvContent ->
+            shareReport(context, csvContent)
+            viewModel.clearCsvExportTrigger() // Reset the trigger
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -47,7 +61,15 @@ fun ReportScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                ),
+                actions = { // Add actions to TopAppBar
+                    IconButton(onClick = { viewModel.prepareCsvExport() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Export Report"
+                        )
+                    }
+                }
             )
         },
         modifier = modifier
@@ -448,5 +470,23 @@ private fun DataTableRow(label: String, amount: Double, formatter: NumberFormat,
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
         Text(formatter.format(amount), style = MaterialTheme.typography.bodyMedium, color = amountColor)
+    }
+}
+
+// Helper function to create and launch the share intent
+private fun shareReport(context: Context, reportContent: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, reportContent)
+        type = "text/csv" // Set MIME type for CSV
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, "Share Report via")
+    // Check if there's an app to handle the intent before launching
+    if (sendIntent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(shareIntent)
+    } else {
+        // Optionally show a toast or message if no app can handle the share action
+        // Toast.makeText(context, "No app found to share the report", Toast.LENGTH_SHORT).show()
     }
 }

@@ -44,7 +44,8 @@ data class ReportUiState(
     val startDate: LocalDate = YearMonth.now().atDay(1), // Default to start of current month
     val endDate: LocalDate = YearMonth.now().atEndOfMonth(), // Default to end of current month
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val csvContentToShare: String? = null // Add field for CSV export trigger
 )
 
 class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
@@ -155,5 +156,53 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
         }
         // No need to reload data here, as all necessary data is already loaded.
         // The UI will react to the change in selectedReportType.
+    }
+
+    /**
+     * Generates CSV content based on the current report state and updates UI state to trigger sharing.
+     */
+    fun prepareCsvExport() {
+        val currentState = _uiState.value
+        if (currentState.isLoading || currentState.error != null) return // Don't export if loading or error
+
+        val csvBuilder = StringBuilder()
+        val header: String
+        val dataRows: List<String>
+
+        // Add Report Title and Date Range
+        csvBuilder.appendLine("BudgetMaster Report")
+        csvBuilder.appendLine("Period: ${currentState.startDate} to ${currentState.endDate}")
+        csvBuilder.appendLine() // Blank line
+
+        when (currentState.selectedReportType) {
+            ReportType.EXPENSE_BY_CATEGORY -> {
+                header = "Category,Amount"
+                dataRows = currentState.categoryExpenses.map { "${it.categoryName},${it.totalAmount}" }
+            }
+            ReportType.INCOME_VS_EXPENSE -> {
+                header = "Item,Amount"
+                dataRows = listOf(
+                    "Total Income,${currentState.totalIncome}",
+                    "Total Expense,${currentState.totalExpense}",
+                    "Net ${if (currentState.totalIncome >= currentState.totalExpense) "Income" else "Loss"},${currentState.totalIncome - currentState.totalExpense}"
+                )
+            }
+            ReportType.SPENDING_TREND -> {
+                header = "Date,Amount"
+                dataRows = currentState.dailyExpenses.map { "${it.date},${it.totalAmount}" }
+            }
+        }
+
+        csvBuilder.appendLine(header)
+        dataRows.forEach { csvBuilder.appendLine(it) }
+
+        _uiState.update { it.copy(csvContentToShare = csvBuilder.toString()) }
+    }
+
+    /**
+     * Resets the CSV export trigger in the UI state. Should be called after handling the share action.
+     */
+    fun clearCsvExportTrigger() {
+        _uiState.update { it.copy(csvContentToShare = null) }
     }
 }
