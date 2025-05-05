@@ -9,18 +9,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update // Import update
 import kotlinx.coroutines.launch
-// Removed BigDecimal import
-import kotlin.math.abs // Import abs for Double
+import java.time.LocalDate
+import java.time.YearMonth
 
 data class CategoryExpense(
     val categoryName: String,
-    val totalAmount: Double // Change to Double
-    // Removed color property as it's not in the Category model
+    val totalAmount: Double
 )
 
 data class ReportUiState(
     val categoryExpenses: List<CategoryExpense> = emptyList(),
+    val startDate: LocalDate = YearMonth.now().atDay(1), // Default to start of current month
+    val endDate: LocalDate = YearMonth.now().atEndOfMonth(), // Default to end of current month
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -31,51 +33,71 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
     val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
 
     init {
+        // Load data for the default date range on init
         loadReportData()
     }
 
     private fun loadReportData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            // Get current date range from state
+            val currentStartDate = _uiState.value.startDate
+            val currentEndDate = _uiState.value.endDate
+            _uiState.update { it.copy(isLoading = true, error = null) } // Start loading, clear previous error
             try {
-                // Combine flows to get both transactions and categories
-                repository.getAllTransactions() // Corrected method name
-                    .combine(repository.getAllCategories()) { transactions, categories -> // Corrected method name
+                // Combine flows to get transactions within the date range and all categories
+                repository.getTransactionsBetweenDates(currentStartDate, currentEndDate) // Fetch based on date range
+                    .combine(repository.getAllCategories()) { transactions, categories -> // Explicit parameter names
                         Pair(transactions, categories)
                     }
-                    .collect { (transactions, categories) ->
-                        val categoryMap = categories.associateBy { it.id }
-                        val expensesByCategory = transactions
+                    .collect { (transactionsResult, categoriesResult) -> // Use distinct names for collected values
+                        val categoryMap = categoriesResult.associateBy { category -> category.id } // Explicit lambda parameter
+                        val expensesByCategory = transactionsResult // Use the collected transactions
                             // Filter based on the TransactionType enum
                             .filter { transaction -> transaction.type == com.senlin.budgetmaster.data.model.TransactionType.EXPENSE }
-                            .groupBy { it.categoryId }
+                            .groupBy { transaction -> transaction.categoryId } // Explicit lambda parameter
                             .mapNotNull { (categoryId, transactionsInCategory) ->
                                 val category = categoryMap[categoryId]
                                 if (category != null) {
-                                    // Sum Doubles using fold. Amount is already positive.
+                                    // Sum Doubles using fold. Amount is stored as positive.
                                     val total = transactionsInCategory.fold(0.0) { acc, transaction ->
-                                        acc + transaction.amount // Amount is stored as positive
+                                        acc + transaction.amount
                                     }
                                     CategoryExpense(
                                         categoryName = category.name,
                                         totalAmount = total
-                                        // Removed color assignment
                                     )
                                 } else {
                                     // Handle transactions with no category or deleted category if necessary
                                     null
                                 }
                             }
-                            .sortedByDescending { it.totalAmount } // Sort for better visualization
+                            .sortedByDescending { categoryExpense -> categoryExpense.totalAmount } // Explicit lambda parameter
 
-                        _uiState.value = ReportUiState(
-                            categoryExpenses = expensesByCategory,
-                            isLoading = false
-                        )
+                        // Update state with fetched data, preserving the date range
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                categoryExpenses = expensesByCategory,
+                                isLoading = false
+                                // startDate and endDate are already correct in the state
+                            )
+                        }
                     }
             } catch (e: Exception) {
-                _uiState.value = ReportUiState(isLoading = false, error = "Failed to load report data: ${e.message}")
+                _uiState.update { currentState -> // Explicit lambda parameter
+                    currentState.copy(isLoading = false, error = "Failed to load report data: ${e.message}")
+                }
             }
         }
+    }
+
+    /**
+     * Updates the selected date range and triggers reloading of the report data.
+     */
+    fun updateDateRange(newStartDate: LocalDate, newEndDate: LocalDate) {
+        _uiState.update { currentState -> // Explicit lambda parameter
+            currentState.copy(startDate = newStartDate, endDate = newEndDate)
+        }
+        // Reload data with the new date range
+        loadReportData()
     }
 }
