@@ -26,7 +26,7 @@ data class CategoryExpense(
 enum class ReportType {
     EXPENSE_BY_CATEGORY,
     INCOME_VS_EXPENSE,
-    // Add other types like SPENDING_TREND later
+    SPENDING_TREND // Add spending trend type
 }
 
 data class ReportUiState(

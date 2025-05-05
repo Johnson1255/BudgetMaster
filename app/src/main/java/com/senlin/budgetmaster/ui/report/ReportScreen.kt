@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
-import androidx.compose.runtime.* // Use wildcard import for runtime
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +20,7 @@ import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.senlin.budgetmaster.ui.ViewModelFactory
+import com.senlin.budgetmaster.ui.report.ReportType // Import ReportType
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -34,11 +35,12 @@ fun ReportScreen(
     viewModel: ReportViewModel = viewModel(factory = ViewModelFactory.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val reportTypes = ReportType.values() // Get all report types
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Expense Report") }, // Simplified title
+                title = { Text("Reports") }, // More general title
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -47,11 +49,29 @@ fun ReportScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        ReportContent(
-            uiState = uiState,
-            onDateRangeSelected = { start, end -> viewModel.updateDateRange(start, end) }, // Pass lambda
-            modifier = Modifier.padding(paddingValues).fillMaxSize()
-        )
+        Column(modifier = Modifier.padding(paddingValues)) { // Wrap content in a Column
+            // Tab Row for Report Type Selection
+            TabRow(
+                selectedTabIndex = reportTypes.indexOf(uiState.selectedReportType),
+                containerColor = MaterialTheme.colorScheme.surface, // Match background
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                reportTypes.forEach { reportType ->
+                    Tab(
+                        selected = uiState.selectedReportType == reportType,
+                        onClick = { viewModel.updateSelectedReportType(reportType) },
+                        text = { Text(reportType.name.replace('_', ' ').lowercase().replaceFirstChar { it.titlecase() }) } // Format enum name
+                    )
+                }
+            }
+
+            // Report Content Area
+            ReportContent(
+                uiState = uiState,
+                onDateRangeSelected = { start, end -> viewModel.updateDateRange(start, end) }, // Pass lambda
+                modifier = Modifier.fillMaxSize() // Content fills remaining space
+            )
+        }
     }
 }
 
@@ -113,16 +133,136 @@ fun ReportContent(
             }
         }
 
-        // Chart Area Box
-        Box(
-            modifier = Modifier.fillMaxWidth().weight(1f), // Allow chart to take remaining space
+        // Content Area based on selected report type
+        Box( // Keep the Box for consistent alignment and weighting
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 8.dp), // Add some padding above content
             contentAlignment = Alignment.Center
         ) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator()
+            // Show content based on the selected report type
+            when (uiState.selectedReportType) {
+                ReportType.EXPENSE_BY_CATEGORY -> {
+                    // Existing Chart Logic for Expenses by Category
+                    when {
+                        uiState.isLoading -> CircularProgressIndicator()
+                        uiState.error != null -> {
+                            Text(
+                                text = "Error: ${uiState.error}",
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        uiState.categoryExpenses.isEmpty() && !uiState.isLoading -> {
+                            Text(
+                                text = "No expense data available for the selected period.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        else -> {
+                            Chart(
+                                chart = columnChart,
+                                chartModelProducer = chartEntryModelProducer,
+                                startAxis = startAxis,
+                                bottomAxis = bottomAxis,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 250.dp)
+                            )
+                        }
+                    }
                 }
-                uiState.error != null -> {
+                ReportType.INCOME_VS_EXPENSE -> {
+                    // New Content for Income vs. Expense Summary
+                    when {
+                        uiState.isLoading -> CircularProgressIndicator()
+                        uiState.error != null -> {
+                            Text(
+                                text = "Error: ${uiState.error}",
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        // Show summary even if income/expense is zero, unless loading/error
+                        !uiState.isLoading -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize() // Center content in the box
+                            ) {
+                                Text("Summary for Period", style = MaterialTheme.typography.headlineSmall)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly // Space out items
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Total Income", style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            text = currencyFormat.format(uiState.totalIncome),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.primary // Use theme colors
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Total Expense", style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            text = currencyFormat.format(uiState.totalExpense),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.error // Use theme colors
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                // Optional: Add Net Income/Loss calculation
+                                val netAmount = uiState.totalIncome - uiState.totalExpense
+                                Text(
+                                    "Net ${if (netAmount >= 0) "Income" else "Loss"}: ${currencyFormat.format(netAmount)}",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                    }
+                }
+                // Add cases for other report types later
+            }
+        }
+    }
+
+    // Date Range Picker Dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePicker = false
+                        // Get selected dates (handle potential nulls)
+                        val selectedStartMillis = datePickerState.selectedStartDateMillis
+                        val selectedEndMillis = datePickerState.selectedEndDateMillis
+
+                        if (selectedStartMillis != null && selectedEndMillis != null) {
+                            val newStartDate = Instant.ofEpochMilli(selectedStartMillis)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
+                            val newEndDate = Instant.ofEpochMilli(selectedEndMillis)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
+                            onDateRangeSelected(newStartDate, newEndDate) // Call the callback
+                        }
+                    },
+                    enabled = datePickerState.selectedStartDateMillis != null && datePickerState.selectedEndDateMillis != null // Enable only when range selected
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) { // Content of the dialog
+            DateRangePicker(state = datePickerState, modifier = Modifier.padding(16.dp))
+        }
+    }
+}
                     Text(
                         text = "Error: ${uiState.error}",
                         color = MaterialTheme.colorScheme.error,
