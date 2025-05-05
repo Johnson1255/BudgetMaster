@@ -1,9 +1,12 @@
 package com.senlin.budgetmaster.ui.report
 
+package com.senlin.budgetmaster.ui.report
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.senlin.budgetmaster.data.model.Category
+import com.senlin.budgetmaster.data.model.Category // Keep if needed for category mapping
 import com.senlin.budgetmaster.data.model.Transaction
+import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +22,18 @@ data class CategoryExpense(
     val totalAmount: Double
 )
 
+// Enum to define the different types of reports available
+enum class ReportType {
+    EXPENSE_BY_CATEGORY,
+    INCOME_VS_EXPENSE,
+    // Add other types like SPENDING_TREND later
+}
+
 data class ReportUiState(
+    val selectedReportType: ReportType = ReportType.EXPENSE_BY_CATEGORY, // Add selected type
     val categoryExpenses: List<CategoryExpense> = emptyList(),
+    val totalIncome: Double = 0.0, // Add total income
+    val totalExpense: Double = 0.0, // Add total expense
     val startDate: LocalDate = YearMonth.now().atDay(1), // Default to start of current month
     val endDate: LocalDate = YearMonth.now().atEndOfMonth(), // Default to end of current month
     val isLoading: Boolean = true,
@@ -50,10 +63,19 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
                         Pair(transactions, categories)
                     }
                     .collect { (transactionsResult, categoriesResult) -> // Use distinct names for collected values
+                        // Calculate total income and expense
+                        var calculatedTotalIncome = 0.0
+                        var calculatedTotalExpense = 0.0
+                        transactionsResult.forEach { transaction ->
+                            when (transaction.type) {
+                                TransactionType.INCOME -> calculatedTotalIncome += transaction.amount
+                                TransactionType.EXPENSE -> calculatedTotalExpense += transaction.amount
+                            }
+                        }
+
                         val categoryMap = categoriesResult.associateBy { category -> category.id } // Explicit lambda parameter
                         val expensesByCategory = transactionsResult // Use the collected transactions
-                            // Filter based on the TransactionType enum
-                            .filter { transaction -> transaction.type == com.senlin.budgetmaster.data.model.TransactionType.EXPENSE }
+                            .filter { transaction -> transaction.type == TransactionType.EXPENSE } // Use imported TransactionType
                             .groupBy { transaction -> transaction.categoryId } // Explicit lambda parameter
                             .mapNotNull { (categoryId, transactionsInCategory) ->
                                 val category = categoryMap[categoryId]
@@ -73,12 +95,14 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
                             }
                             .sortedByDescending { categoryExpense -> categoryExpense.totalAmount } // Explicit lambda parameter
 
-                        // Update state with fetched data, preserving the date range
+                        // Update state with fetched data
                         _uiState.update { currentState ->
                             currentState.copy(
                                 categoryExpenses = expensesByCategory,
+                                totalIncome = calculatedTotalIncome, // Update total income
+                                totalExpense = calculatedTotalExpense, // Update total expense
                                 isLoading = false
-                                // startDate and endDate are already correct in the state
+                                // selectedReportType, startDate and endDate are preserved
                             )
                         }
                     }
@@ -99,5 +123,16 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
         }
         // Reload data with the new date range
         loadReportData()
+    }
+
+    /**
+     * Updates the currently selected report type in the UI state.
+     */
+    fun updateSelectedReportType(newReportType: ReportType) {
+        _uiState.update { currentState ->
+            currentState.copy(selectedReportType = newReportType)
+        }
+        // No need to reload data here, as all necessary data is already loaded.
+        // The UI will react to the change in selectedReportType.
     }
 }
