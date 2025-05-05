@@ -1,6 +1,8 @@
 package com.senlin.budgetmaster.ui.report
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn // Import LazyColumn
+import androidx.compose.foundation.lazy.items // Import items extension
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
@@ -138,9 +140,7 @@ fun ReportContent(
     val startAxisValueFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
         currencyFormat.format(value)
     }
-    val startAxisValueFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
-        currencyFormat.format(value)
-    }
+    // Removed duplicate definition
 
     // --- Define Chart components ---
     // For Category Chart
@@ -150,7 +150,8 @@ fun ReportContent(
     // For Trend Chart
     val trendLineChart = lineChart()
     val trendStartAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter)
-    val trendBottomAxis = rememberBottomAxis(valueFormatter = trendBottomAxisFormatter, guidelike = null) // Remove guideline for dates
+    // Corrected: Removed 'guidelike' parameter, configure guideline separately if needed
+    val trendBottomAxis = rememberBottomAxis(valueFormatter = trendBottomAxisFormatter)
 
 
     Column( // Use Column to stack elements vertically
@@ -171,6 +172,32 @@ fun ReportContent(
                 Icon(Icons.Default.DateRange, contentDescription = "Select Date Range")
             }
         }
+
+        // Predefined Date Range Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly // Or Arrangement.spacedBy(4.dp)
+        ) {
+            val today = LocalDate.now()
+            TextButton(onClick = {
+                val start = today.withDayOfMonth(1)
+                val end = today.withDayOfMonth(today.lengthOfMonth())
+                onDateRangeSelected(start, end)
+            }) { Text("Month") } // Short label
+
+            TextButton(onClick = {
+                val start = today.minusMonths(1).withDayOfMonth(1)
+                val end = start.withDayOfMonth(start.lengthOfMonth())
+                onDateRangeSelected(start, end)
+            }) { Text("Last M.") } // Short label
+
+            TextButton(onClick = {
+                val start = today.withDayOfYear(1)
+                val end = today // YTD ends today
+                onDateRangeSelected(start, end)
+            }) { Text("YTD") }
+        }
+
 
         // Content Area based on selected report type (Chart or Summary Text)
         Box(
