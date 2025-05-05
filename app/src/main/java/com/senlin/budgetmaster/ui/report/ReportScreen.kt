@@ -66,15 +66,11 @@ fun ReportContent(
     LaunchedEffect(uiState.categoryExpenses) {
         val entries = uiState.categoryExpenses.mapIndexed { index, expense ->
             entryOf(index.toFloat(), expense.totalAmount.toFloat())
-        }
-        if (entries.isNotEmpty()) {
-            // Explicitly cast to List<List<ChartEntry>> to resolve ambiguity
-            chartEntryModelProducer.setEntries(listOf(entries) as List<List<com.patrykandpatrick.vico.core.entry.ChartEntry>>) { /* empty lambda */ }
-        } else {
-            // Explicitly cast empty list as well
-            chartEntryModelProducer.setEntries(emptyList<List<com.patrykandpatrick.vico.core.entry.ChartEntry>>()) { /* empty lambda */ }
-        }
-    }
+         }
+         // Pass the list of entries directly. Vico's setEntries can handle List<ChartEntry>.
+         // The producer manages wrapping it if needed internally.
+         chartEntryModelProducer.setEntries(entries) { /* optional callback */ }
+     }
 
     // Define Axis formatters
     val bottomAxisValueFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->

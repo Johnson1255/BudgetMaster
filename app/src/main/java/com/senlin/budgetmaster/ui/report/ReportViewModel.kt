@@ -46,15 +46,15 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
                     .collect { (transactions, categories) ->
                         val categoryMap = categories.associateBy { it.id }
                         val expensesByCategory = transactions
-                            // Filter for Doubles (expenses are negative)
-                            .filter { transaction -> transaction.amount < 0.0 }
+                            // Filter based on the TransactionType enum
+                            .filter { transaction -> transaction.type == com.senlin.budgetmaster.data.model.TransactionType.EXPENSE }
                             .groupBy { it.categoryId }
                             .mapNotNull { (categoryId, transactionsInCategory) ->
                                 val category = categoryMap[categoryId]
                                 if (category != null) {
-                                    // Sum Doubles using fold and kotlin.math.abs
+                                    // Sum Doubles using fold. Amount is already positive.
                                     val total = transactionsInCategory.fold(0.0) { acc, transaction ->
-                                        acc + abs(transaction.amount) // Use abs() from kotlin.math
+                                        acc + transaction.amount // Amount is stored as positive
                                     }
                                     CategoryExpense(
                                         categoryName = category.name,
