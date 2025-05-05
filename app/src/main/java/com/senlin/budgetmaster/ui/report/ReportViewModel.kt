@@ -22,6 +22,12 @@ data class CategoryExpense(
     val totalAmount: Double
 )
 
+// Data class for daily expense trend
+data class DailyExpense(
+    val date: LocalDate,
+    val totalAmount: Double
+)
+
 // Enum to define the different types of reports available
 enum class ReportType {
     EXPENSE_BY_CATEGORY,
@@ -32,6 +38,7 @@ enum class ReportType {
 data class ReportUiState(
     val selectedReportType: ReportType = ReportType.EXPENSE_BY_CATEGORY, // Add selected type
     val categoryExpenses: List<CategoryExpense> = emptyList(),
+    val dailyExpenses: List<DailyExpense> = emptyList(), // Add daily expenses for trend
     val totalIncome: Double = 0.0, // Add total income
     val totalExpense: Double = 0.0, // Add total expense
     val startDate: LocalDate = YearMonth.now().atDay(1), // Default to start of current month
@@ -73,6 +80,18 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
                             }
                         }
 
+                        // Calculate expenses per day for the trend chart
+                        val expensesByDay = transactionsResult
+                            .filter { it.type == TransactionType.EXPENSE }
+                            .groupBy { it.date } // Group by LocalDate directly
+                            .map { (date, transactionsOnDay) ->
+                                DailyExpense(
+                                    date = date, // Date is already LocalDate
+                                    totalAmount = transactionsOnDay.sumOf { it.amount } // Sum amounts for the day
+                                )
+                            }
+                            .sortedBy { it.date } // Sort by date for the line chart
+
                         val categoryMap = categoriesResult.associateBy { category -> category.id } // Explicit lambda parameter
                         val expensesByCategory = transactionsResult // Use the collected transactions
                             .filter { transaction -> transaction.type == TransactionType.EXPENSE } // Use imported TransactionType
@@ -96,9 +115,11 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
                             .sortedByDescending { categoryExpense -> categoryExpense.totalAmount } // Explicit lambda parameter
 
                         // Update state with fetched data
+                        // Update state with fetched data
                         _uiState.update { currentState ->
                             currentState.copy(
                                 categoryExpenses = expensesByCategory,
+                                dailyExpenses = expensesByDay, // Update daily expenses
                                 totalIncome = calculatedTotalIncome, // Update total income
                                 totalExpense = calculatedTotalExpense, // Update total expense
                                 isLoading = false

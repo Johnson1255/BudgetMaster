@@ -15,6 +15,7 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart // Import lineChart
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
@@ -60,7 +61,15 @@ fun ReportScreen(
                     Tab(
                         selected = uiState.selectedReportType == reportType,
                         onClick = { viewModel.updateSelectedReportType(reportType) },
-                        text = { Text(reportType.name.replace('_', ' ').lowercase().replaceFirstChar { it.titlecase() }) } // Format enum name
+                        text = {
+                            Text(
+                                when (reportType) {
+                                    ReportType.EXPENSE_BY_CATEGORY -> "By Category"
+                                    ReportType.INCOME_VS_EXPENSE -> "Income/Expense"
+                                    ReportType.SPENDING_TREND -> "Trend"
+                                }
+                            )
+                        }
                     )
                 }
             }
@@ -83,8 +92,12 @@ fun ReportContent(
     modifier: Modifier = Modifier,
 ) {
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) }
-    val chartEntryModelProducer = remember { ChartEntryModelProducer() }
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("MMM d, yyyy") } // Formatter for display
+    // Producer for Category Expense Chart
+    val categoryChartEntryModelProducer = remember { ChartEntryModelProducer() }
+    // Producer for Spending Trend Chart
+    val trendChartEntryModelProducer = remember { ChartEntryModelProducer() }
+    val displayDateFormatter = remember { DateTimeFormatter.ofPattern("MMM d, yyyy") } // For date range display
+    val trendAxisDateFormatter = remember { DateTimeFormatter.ofPattern("M/d") } // Short format for axis
 
     // State for Date Range Picker Dialog
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -93,26 +106,52 @@ fun ReportContent(
         initialSelectedEndDateMillis = uiState.endDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
-    // Update chart producer when data changes
+    // Update Category chart producer when category data changes
     LaunchedEffect(uiState.categoryExpenses) {
         val entries = uiState.categoryExpenses.mapIndexed { index, expense ->
             entryOf(index.toFloat(), expense.totalAmount.toFloat())
         }
-        chartEntryModelProducer.setEntries(entries) { /* optional callback */ }
+        categoryChartEntryModelProducer.setEntries(entries) { /* optional callback */ }
     }
 
-    // Define Axis formatters
-    val bottomAxisValueFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+    // Update Trend chart producer when daily data changes
+    LaunchedEffect(uiState.dailyExpenses) {
+        val entries = uiState.dailyExpenses.mapIndexed { index, dailyExpense ->
+            // Use index for x-axis, actual amount for y-axis
+            entryOf(index.toFloat(), dailyExpense.totalAmount.toFloat())
+        }
+        trendChartEntryModelProducer.setEntries(entries) { /* optional callback */ }
+    }
+
+
+    // --- Define Axis formatters ---
+    // For Category Chart (Bottom: Category Name)
+    val categoryBottomAxisFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
         uiState.categoryExpenses.getOrNull(value.toInt())?.categoryName ?: ""
+    }
+    // For Trend Chart (Bottom: Date)
+    val trendBottomAxisFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+        // Map the index back to the date from the dailyExpenses list
+        uiState.dailyExpenses.getOrNull(value.toInt())?.date?.format(trendAxisDateFormatter) ?: ""
+    }
+    // For Both Charts (Start: Currency)
+    val startAxisValueFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
+        currencyFormat.format(value)
     }
     val startAxisValueFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
         currencyFormat.format(value)
     }
 
-    // Define Chart components
-    val columnChart = columnChart()
-    val startAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter)
-    val bottomAxis = rememberBottomAxis(valueFormatter = bottomAxisValueFormatter)
+    // --- Define Chart components ---
+    // For Category Chart
+    val categoryColumnChart = columnChart()
+    val categoryStartAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter)
+    val categoryBottomAxis = rememberBottomAxis(valueFormatter = categoryBottomAxisFormatter)
+    // For Trend Chart
+    val trendLineChart = lineChart()
+    val trendStartAxis = rememberStartAxis(valueFormatter = startAxisValueFormatter)
+    val trendBottomAxis = rememberBottomAxis(valueFormatter = trendBottomAxisFormatter, guidelike = null) // Remove guideline for dates
+
 
     Column( // Use Column to stack elements vertically
         modifier = modifier.padding(16.dp),
@@ -125,7 +164,7 @@ fun ReportContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "${uiState.startDate.format(dateFormatter)} - ${uiState.endDate.format(dateFormatter)}",
+                text = "${uiState.startDate.format(displayDateFormatter)} - ${uiState.endDate.format(displayDateFormatter)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             IconButton(onClick = { showDatePicker = true }) {
@@ -133,12 +172,14 @@ fun ReportContent(
             }
         }
 
-        // Content Area based on selected report type
-        Box( // Keep the Box for consistent alignment and weighting
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 8.dp), // Add some padding above content
+        // Content Area based on selected report type (Chart or Summary Text)
+        Box(
+            // Removed weight(1f) to allow space for the table below
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                .heightIn(min = 250.dp), // Ensure chart has minimum height
             contentAlignment = Alignment.Center
         ) {
-            // Show content based on the selected report type
+            // Show chart or summary text based on the selected report type
             when (uiState.selectedReportType) {
                 ReportType.EXPENSE_BY_CATEGORY -> {
                     // Existing Chart Logic for Expenses by Category
@@ -160,10 +201,10 @@ fun ReportContent(
                         }
                         else -> {
                             Chart(
-                                chart = columnChart,
-                                chartModelProducer = chartEntryModelProducer,
-                                startAxis = startAxis,
-                                bottomAxis = bottomAxis,
+                                chart = categoryColumnChart,
+                                chartModelProducer = categoryChartEntryModelProducer,
+                                startAxis = categoryStartAxis,
+                                bottomAxis = categoryBottomAxis,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min = 250.dp)
@@ -223,12 +264,119 @@ fun ReportContent(
                         }
                     }
                 }
-                // Add cases for other report types later
+                ReportType.SPENDING_TREND -> {
+                    // Placeholder for Spending Trend Chart
+                    when {
+                        uiState.isLoading -> CircularProgressIndicator()
+                        uiState.error != null -> {
+                            Text(
+                                text = "Error: ${uiState.error}",
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        uiState.dailyExpenses.isEmpty() && !uiState.isLoading -> {
+                             Text(
+                                 text = "No spending data available for the selected period.",
+                                 style = MaterialTheme.typography.bodyLarge,
+                                 textAlign = TextAlign.Center
+                             )
+                        }
+                        !uiState.isLoading -> {
+                            Chart(
+                                chart = trendLineChart,
+                                chartModelProducer = trendChartEntryModelProducer,
+                                startAxis = trendStartAxis,
+                                bottomAxis = trendBottomAxis,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 250.dp)
+                            )
+                        }
+                    }
+                }
+                // Add else branch to satisfy exhaustive check, though it shouldn't be reached
+                else -> {
+                    Text("Unknown report type selected.")
+                }
             }
-        }
-    }
+        } // End of Box for Chart/Summary
 
-    // Date Range Picker Dialog
+        // Divider
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // Data Table Area (Scrollable)
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth()
+                // Optional: Add weight if you want it to take remaining space,
+                // but LazyColumn handles scrolling internally.
+                // .weight(1f)
+        ) {
+            // Add headers and items based on report type
+            when (uiState.selectedReportType) {
+                ReportType.EXPENSE_BY_CATEGORY -> {
+                    if (uiState.categoryExpenses.isNotEmpty() && !uiState.isLoading) {
+                        item { // Header Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Category", style = MaterialTheme.typography.titleSmall)
+                                Text("Amount", style = MaterialTheme.typography.titleSmall)
+                            }
+                            Divider()
+                        }
+                        items(uiState.categoryExpenses) { expense ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(expense.categoryName, style = MaterialTheme.typography.bodyMedium)
+                                Text(currencyFormat.format(expense.totalAmount), style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+                ReportType.INCOME_VS_EXPENSE -> {
+                     if (!uiState.isLoading) {
+                         item { // Header
+                             Text("Details", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 4.dp))
+                             Divider()
+                         }
+                         item { DataTableRow("Total Income", uiState.totalIncome, currencyFormat, MaterialTheme.colorScheme.primary) }
+                         item { DataTableRow("Total Expense", uiState.totalExpense, currencyFormat, MaterialTheme.colorScheme.error) }
+                         item { DataTableRow("Net ${if (uiState.totalIncome >= uiState.totalExpense) "Income" else "Loss"}", uiState.totalIncome - uiState.totalExpense, currencyFormat) }
+                     }
+                }
+                ReportType.SPENDING_TREND -> {
+                    if (uiState.dailyExpenses.isNotEmpty() && !uiState.isLoading) {
+                        item { // Header Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Date", style = MaterialTheme.typography.titleSmall)
+                                Text("Amount", style = MaterialTheme.typography.titleSmall)
+                            }
+                            Divider()
+                        }
+                        items(uiState.dailyExpenses) { daily ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(daily.date.format(displayDateFormatter), style = MaterialTheme.typography.bodyMedium)
+                                Text(currencyFormat.format(daily.totalAmount), style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+            }
+        } // End of LazyColumn for Table
+
+    } // End of Main Column
+
+    // Date Range Picker Dialog (Keep outside the main content column)
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -263,66 +411,15 @@ fun ReportContent(
         }
     }
 }
-                    Text(
-                        text = "Error: ${uiState.error}",
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                uiState.categoryExpenses.isEmpty() && !uiState.isLoading -> { // Check isLoading false
-                    Text(
-                        text = "No expense data available for the selected period.", // Updated message
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                else -> {
-                    Chart(
-                        chart = columnChart,
-                        chartModelProducer = chartEntryModelProducer,
-                        startAxis = startAxis,
-                        bottomAxis = bottomAxis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 250.dp) // Use heightIn for flexibility
-                    )
-                }
-            }
-        }
-    }
 
-    // Date Range Picker Dialog
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                        // Get selected dates (handle potential nulls)
-                        val selectedStartMillis = datePickerState.selectedStartDateMillis
-                        val selectedEndMillis = datePickerState.selectedEndDateMillis
-
-                        if (selectedStartMillis != null && selectedEndMillis != null) {
-                            val newStartDate = Instant.ofEpochMilli(selectedStartMillis)
-                                .atZone(ZoneId.systemDefault()).toLocalDate()
-                            val newEndDate = Instant.ofEpochMilli(selectedEndMillis)
-                                .atZone(ZoneId.systemDefault()).toLocalDate()
-                            onDateRangeSelected(newStartDate, newEndDate) // Call the callback
-                        }
-                    },
-                    enabled = datePickerState.selectedStartDateMillis != null && datePickerState.selectedEndDateMillis != null // Enable only when range selected
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) { // Content of the dialog
-            DateRangePicker(state = datePickerState, modifier = Modifier.padding(16.dp))
-        }
+// Helper composable for Income/Expense table rows
+@Composable
+private fun DataTableRow(label: String, amount: Double, formatter: NumberFormat, amountColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Text(formatter.format(amount), style = MaterialTheme.typography.bodyMedium, color = amountColor)
     }
 }
