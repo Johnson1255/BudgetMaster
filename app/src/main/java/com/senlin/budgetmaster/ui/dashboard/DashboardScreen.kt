@@ -57,7 +57,7 @@ fun DashboardScreen(
     Scaffold( // Use Scaffold to add TopAppBar
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(title = { Text(stringResource(id = R.string.app_name)) }) // Use app_name string
+            TopAppBar(title = { Text(stringResource(id = R.string.dashboard_title)) }) // Use dashboard_title string
         }
     ) { innerPadding -> // Content lambda receives padding
         Surface(
@@ -100,10 +100,10 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
         }
 
         item {
-            SectionTitle("Recent Transactions")
+            SectionTitle(R.string.dashboard_recent_transactions)
         }
         if (uiState.recentTransactions.isEmpty()) {
-            item { Text("No recent transactions.") }
+            item { Text(stringResource(id = R.string.dashboard_no_recent_transactions)) }
         } else {
             // Wrap items in Cards instead of using dividers
             items(uiState.recentTransactions) { transaction ->
@@ -114,10 +114,10 @@ fun DashboardContent(uiState: DashboardUiState, modifier: Modifier = Modifier) {
 
 
         item {
-            SectionTitle("Saving Goals")
+            SectionTitle(R.string.dashboard_saving_goals)
         }
         if (uiState.goals.isEmpty()) {
-            item { Text("No saving goals set.") }
+            item { Text(stringResource(id = R.string.dashboard_no_saving_goals)) }
         } else {
             // Wrap items in Cards instead of using dividers
             items(uiState.goals) { goal ->
@@ -139,7 +139,7 @@ fun BalanceCard(balance: Double, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Current Balance",
+                text = stringResource(id = R.string.dashboard_current_balance),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -153,9 +153,9 @@ fun BalanceCard(balance: Double, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SectionTitle(title: String, modifier: Modifier = Modifier) {
+fun SectionTitle(titleResId: Int, modifier: Modifier = Modifier) {
     Text(
-        text = title,
+        text = stringResource(id = titleResId),
         style = MaterialTheme.typography.titleLarge,
         modifier = modifier.padding(top = 8.dp, bottom = 8.dp) // Add some vertical padding
     )

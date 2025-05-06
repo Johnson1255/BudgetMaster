@@ -24,4 +24,12 @@
     <string name="no_categories_goals_available">No categories or goals available</string>
     <string name="date_label">Date</string>
     <string name="select_date_description">Select Date</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_current_balance">Current Balance</string>
+    <string name="dashboard_recent_transactions">Recent Transactions</string>
+    <string name="dashboard_saving_goals">Saving Goals</string>
+    <string name="dashboard_no_recent_transactions">No recent transactions.</string>
+    <string name="dashboard_no_saving_goals">No saving goals set.</string>
 </resources>

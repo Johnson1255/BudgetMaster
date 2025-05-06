@@ -24,4 +24,12 @@
     <string name="no_categories_goals_available">No hay categorías o metas disponibles</string>
     <string name="date_label">Fecha</string>
     <string name="select_date_description">Seleccionar Fecha</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Panel Principal</string>
+    <string name="dashboard_current_balance">Saldo Actual</string>
+    <string name="dashboard_recent_transactions">Transacciones Recientes</string>
+    <string name="dashboard_saving_goals">Metas de Ahorro</string>
+    <string name="dashboard_no_recent_transactions">No hay transacciones recientes.</string>
+    <string name="dashboard_no_saving_goals">No hay metas de ahorro establecidas.</string>
 </resources>
