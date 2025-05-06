@@ -38,6 +38,7 @@ import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditScreen // Impo
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
 import com.senlin.budgetmaster.ui.settings.SettingsScreen // Import Settings Screen
 import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
+import com.senlin.budgetmaster.BudgetMasterApplication // Import Application class
 import android.content.Context // Import Context for setLocale
 import android.content.res.Configuration // Import Configuration for setLocale
 import androidx.appcompat.app.AppCompatDelegate // Import AppCompatDelegate for locale setting
@@ -67,7 +68,11 @@ fun BudgetMasterApp(
     // Effect to update locale when language preference changes
     LaunchedEffect(mainUiState.selectedLanguageCode) {
         mainUiState.selectedLanguageCode?.let { code ->
-            setLocale(context, code)
+            val currentLocale = context.resources.configuration.locales[0]
+            if (currentLocale.language != code) {
+                setLocale(context, code)
+                // AppCompatDelegate.setApplicationLocales() in setLocale should handle recreation
+            }
         }
     }
 
