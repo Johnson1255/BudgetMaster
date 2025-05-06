@@ -18,19 +18,24 @@ import androidx.compose.material.icons.filled.ArrowUpward // Import specific ico
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api // Import for TopAppBar
 import androidx.compose.material3.HorizontalDivider // Keep for potential future use, but removing from lists
 import androidx.compose.material3.Icon // Import Icon
 import androidx.compose.material3.LinearProgressIndicator // Import LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold // Import Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar // Import TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource // Import stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.senlin.budgetmaster.R // Import R for resources
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
@@ -41,6 +46,7 @@ import java.time.format.DateTimeFormatter // Import DateTimeFormatter
 import java.time.format.FormatStyle // Optional: For localized date formats
 import java.util.Locale // Keep Locale for NumberFormat
 
+@OptIn(ExperimentalMaterial3Api::class) // Opt-in for experimental TopAppBar
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
@@ -48,25 +54,36 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Surface(
+    Scaffold( // Use Scaffold to add TopAppBar
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.errorMessage != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Error: ${uiState.errorMessage}",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        } else {
-            DashboardContent(uiState = uiState)
+        topBar = {
+            TopAppBar(title = { Text(stringResource(id = R.string.app_name)) }) // Use app_name string
         }
+    ) { innerPadding -> // Content lambda receives padding
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding), // Apply innerPadding from Scaffold
+            color = MaterialTheme.colorScheme.background
+        ) {
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.errorMessage != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Error: ${uiState.errorMessage}",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                // Pass modifier down if needed, but padding is handled by Surface now
+                DashboardContent(uiState = uiState)
+            }
+        }
+        // Removed duplicated error/content blocks here
     }
 }
 
