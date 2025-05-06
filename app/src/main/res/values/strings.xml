@@ -12,6 +12,9 @@
     <!-- Transaction Edit Screen -->
     <string name="add_transaction_title">Add Transaction</string>
     <string name="edit_transaction_title">Edit Transaction</string>
+
+    <!-- Category List Screen -->
+    <string name="categories_title">Categories</string>
     <string name="navigate_back_description">Navigate back</string>
     <string name="amount_label">Amount</string>
     <string name="type_label">Type:</string>
