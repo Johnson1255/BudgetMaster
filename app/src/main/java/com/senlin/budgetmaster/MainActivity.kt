@@ -49,6 +49,12 @@ import kotlinx.coroutines.launch // Import launch
 import java.util.Locale // Import Locale for setLocale
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        // Apply the locale from BudgetMasterApplication before the activity is fully created
+        super.attachBaseContext(BudgetMasterApplication.localeAwareContext(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -234,32 +240,65 @@ fun DefaultPreview() {
 
 // Helper function to update the app's locale
 private fun setLocale(context: Context, languageCode: String) {
-    Log.d("LocaleChange", "setLocale function called. Current context: $context, languageCode: $languageCode")
-    val currentActivityLocale = context.resources.configuration.locales[0]
-    Log.d("LocaleChange", "Current activity locale before setting: ${currentActivityLocale.language}")
+    Log.d("LocaleChange", "setLocale function called. languageCode: $languageCode")
 
-    if (currentActivityLocale.language == languageCode) {
-        Log.d("LocaleChange", "Locale already set to $languageCode. Skipping AppCompatDelegate call.")
-        // If locale is already what we want, we might not need to call setApplicationLocales,
-        // as it can trigger unnecessary recreation if called repeatedly with the same locale.
-        // However, the initial call from LaunchedEffect might be necessary.
-        // For now, let's always call it to ensure it's attempted.
+    // Check 1: Current context's configuration.
+    // This should be updated by attachBaseContext after the activity is recreated.
+    val currentContextLocale = context.resources.configuration.locales.get(0)
+    Log.d("LocaleChange", "Current context locale from resources.configuration: ${currentContextLocale.toLanguageTag()}")
+
+    if (currentContextLocale.language == languageCode) {
+        Log.d("LocaleChange", "Context already has target locale $languageCode. Verifying AppCompatDelegate persistence.")
+        // Even if context is correct, ensure AppCompatDelegate is aligned for persistence.
+        val appCompatLocales = AppCompatDelegate.getApplicationLocales()
+        if (!appCompatLocales.isEmpty && appCompatLocales.get(0)?.language == languageCode) {
+            Log.d("LocaleChange", "AppCompatDelegate also aligned for $languageCode. No further action needed by setLocale.")
+            return // Both context and AppCompatDelegate are aligned.
+        }
+        Log.d("LocaleChange", "AppCompatDelegate not aligned (${appCompatLocales.toLanguageTags()}) or empty. Will proceed to set via AppCompatDelegate, but won't recreate if context is already correct.")
+        // If context is correct but AppCompatDelegate isn't, we still call setApplicationLocales
+        // but avoid recreation if possible, as the visual locale is already applied.
+        // However, for simplicity and to ensure AppCompatDelegate persistence is robustly triggered,
+        // we might still proceed with the full logic if this state is encountered.
+        // For now, if context is correct, we assume the main loop-causing issue is resolved.
+        // If AppCompatDelegate.getApplicationLocales() *still* shows empty later, that's a separate persistence concern.
+        // The primary goal here is to stop the immediate recreation loop.
+        // If the context is already correct, we might not need to recreate.
+        // However, setApplicationLocales is for persistence.
+        // Let's ensure it's called if needed, but prioritize breaking the loop.
+        if (appCompatLocales.isEmpty || appCompatLocales.get(0)?.language != languageCode) {
+            Log.d("LocaleChange", "Context is $languageCode, but AppCompatDelegate needs update. Setting AppCompatDelegate without forcing recreate from here if context is already fine.")
+            BudgetMasterApplication.currentLanguageCode = languageCode // Ensure app var is also aligned
+            val appLocaleListForPersistence: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+            AppCompatDelegate.setApplicationLocales(appLocaleListForPersistence)
+            // Do not recreate here if currentContextLocale.language == languageCode,
+            // as the UI should already reflect it.
+            return
+        }
+        return // Context has the language, and AppCompatDelegate is also aligned.
     }
 
+    Log.d("LocaleChange", "Context locale is ${currentContextLocale.language}, target is $languageCode. Proceeding to set locale fully.")
+
+    // Update the Application's current language code
+    // This ensures attachBaseContext uses the new code upon recreation
+    BudgetMasterApplication.currentLanguageCode = languageCode
+
     val locale = Locale(languageCode)
-    Locale.setDefault(locale) // Set default locale for the JVM
+    Locale.setDefault(locale) // Set default locale for the JVM (good practice)
 
-    // Update app configuration - This is the modern way for API 24+
-    val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
-    Log.d("LocaleChange", "Calling AppCompatDelegate.setApplicationLocales with language tags: ${appLocale.toLanguageTags()}")
-    AppCompatDelegate.setApplicationLocales(appLocale)
-    Log.d("LocaleChange", "AppCompatDelegate.setApplicationLocales finished.")
+    // Update app configuration via AppCompatDelegate for persistence and system awareness
+    val appLocaleList: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+    Log.d("LocaleChange", "Calling AppCompatDelegate.setApplicationLocales with language tags: ${appLocaleList.toLanguageTags()}")
+    AppCompatDelegate.setApplicationLocales(appLocaleList)
+    Log.d("LocaleChange", "AppCompatDelegate.setApplicationLocales finished for $languageCode.")
 
-    // --- Older method (might still be needed for specific cases or older APIs) ---
-    // val resources = context.resources
-    // val config = Configuration(resources.configuration)
-    // config.setLocale(locale)
-    // context.createConfigurationContext(config) // Create new context with updated config
-    // resources.updateConfiguration(config, resources.displayMetrics) // Update existing resources
-    // -----------------------------------------------------------------------------
+    // Explicitly recreate the activity to apply the new locale
+    // This is generally needed for the changes from setApplicationLocales to take full effect immediately.
+    if (context is ComponentActivity) {
+        Log.d("LocaleChange", "Recreating activity to apply locale changes.")
+        context.recreate()
+    } else {
+        Log.w("LocaleChange", "Context is not an Activity, cannot call recreate(). Locale might not apply immediately.")
+    }
 }
