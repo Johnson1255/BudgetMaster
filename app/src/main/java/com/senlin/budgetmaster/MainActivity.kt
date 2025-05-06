@@ -40,6 +40,7 @@ import com.senlin.budgetmaster.ui.settings.SettingsScreen // Import Settings Scr
 import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
 import com.senlin.budgetmaster.BudgetMasterApplication // Import Application class
 import android.content.Context // Import Context for setLocale
+import android.util.Log // Import Log for debugging
 import android.content.res.Configuration // Import Configuration for setLocale
 import androidx.appcompat.app.AppCompatDelegate // Import AppCompatDelegate for locale setting
 import androidx.core.os.LocaleListCompat // Import LocaleListCompat for locale setting
@@ -67,12 +68,13 @@ fun BudgetMasterApp(
 
     // Effect to update locale when language preference changes
     LaunchedEffect(mainUiState.selectedLanguageCode) {
+        Log.d("LocaleChange", "LaunchedEffect triggered. Selected language code: ${mainUiState.selectedLanguageCode}")
         mainUiState.selectedLanguageCode?.let { code ->
-            val currentLocale = context.resources.configuration.locales[0]
-            if (currentLocale.language != code) {
-                setLocale(context, code)
-                // AppCompatDelegate.setApplicationLocales() in setLocale should handle recreation
-            }
+            Log.d("LocaleChange", "Calling setLocale with code: $code from LaunchedEffect")
+            // Always attempt to set the locale.
+            // AppCompatDelegate.setApplicationLocales() should handle
+            // whether a configuration change (and activity recreation) is actually needed.
+            setLocale(context, code)
         }
     }
 
@@ -232,12 +234,26 @@ fun DefaultPreview() {
 
 // Helper function to update the app's locale
 private fun setLocale(context: Context, languageCode: String) {
+    Log.d("LocaleChange", "setLocale function called. Current context: $context, languageCode: $languageCode")
+    val currentActivityLocale = context.resources.configuration.locales[0]
+    Log.d("LocaleChange", "Current activity locale before setting: ${currentActivityLocale.language}")
+
+    if (currentActivityLocale.language == languageCode) {
+        Log.d("LocaleChange", "Locale already set to $languageCode. Skipping AppCompatDelegate call.")
+        // If locale is already what we want, we might not need to call setApplicationLocales,
+        // as it can trigger unnecessary recreation if called repeatedly with the same locale.
+        // However, the initial call from LaunchedEffect might be necessary.
+        // For now, let's always call it to ensure it's attempted.
+    }
+
     val locale = Locale(languageCode)
     Locale.setDefault(locale) // Set default locale for the JVM
 
     // Update app configuration - This is the modern way for API 24+
     val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+    Log.d("LocaleChange", "Calling AppCompatDelegate.setApplicationLocales with language tags: ${appLocale.toLanguageTags()}")
     AppCompatDelegate.setApplicationLocales(appLocale)
+    Log.d("LocaleChange", "AppCompatDelegate.setApplicationLocales finished.")
 
     // --- Older method (might still be needed for specific cases or older APIs) ---
     // val resources = context.resources
