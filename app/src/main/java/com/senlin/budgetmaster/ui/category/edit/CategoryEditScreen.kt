@@ -2,7 +2,7 @@ package com.senlin.budgetmaster.ui.category.edit
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Corrected import
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,7 +45,7 @@ fun CategoryEditScreen(
                 title = { Text(if (uiState.id == 0L) "Add Category" else "Edit Category") }, // Use 0L for Long comparison
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {

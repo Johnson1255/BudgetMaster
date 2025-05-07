@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton // Import TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.IconButton // Import IconButton
+import androidx.compose.material3.MenuAnchorType // Added import
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack // Import Back Arrow Icon
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -104,12 +105,7 @@ fun TransactionEditScreen(
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        } else if (uiState.isError) {
-             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Error loading data. Please try again.") // Simple error message
-            }
-        }
-         else {
+        } else {
             TransactionEditForm(
                 uiState = uiState, // Ensure only one uiState argument persists
                 onAmountChange = viewModel::updateAmount,
@@ -247,7 +243,7 @@ fun CombinedSelector(
             readOnly = true,
             label = { Text(stringResource(R.string.category_goal_label)) }, // Use stringResource
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor() // Add menuAnchor modifier for M3
+            modifier = Modifier.fillMaxWidth().menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true) // Add menuAnchor modifier for M3
         )
         ExposedDropdownMenu(
             expanded = expanded,
