@@ -41,10 +41,12 @@ import androidx.compose.runtime.saveable.rememberSaveable // Add rememberSaveabl
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // Import stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.senlin.budgetmaster.R // Import R
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType from model
 import com.senlin.budgetmaster.navigation.Screen
@@ -74,19 +76,7 @@ fun TransactionListScreen(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        // Navigate to Add/Edit screen for adding a new transaction (-1 indicates new)
-                        navController.navigate(Screen.AddEditTransaction.createRoute(null))
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Transaction", tint = Color.White)
-                }
-            }
-        ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) { // Use Box to contain FAB and content
             TransactionListContent(
                 transactions = uiState.transactions,
                 categoryMap = uiState.categoryMap, // Pass the map
@@ -96,8 +86,20 @@ fun TransactionListScreen(
                     navController.navigate(Screen.AddEditTransaction.createRoute(transactionId))
                 },
                 viewModel = viewModel, // Pass the viewModel down
-                modifier = Modifier.padding(paddingValues)
+                // The modifier here should already contain padding from MainActivity's Scaffold
+                modifier = Modifier.fillMaxSize()
             )
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.AddEditTransaction.createRoute(null))
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_transaction_cd), tint = Color.White) // Use string resource
+            }
         }
     }
 }
@@ -170,13 +172,9 @@ private fun TransactionListContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp) // Keep internal padding for content
     ) {
-        Text(
-            "Transactions",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp) // Reduced bottom padding
-        )
+        // Title is now handled by AppTopBar in MainActivity
 
         // --- Date Filter Row ---
         Row(

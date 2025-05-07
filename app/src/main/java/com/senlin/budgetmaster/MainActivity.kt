@@ -254,13 +254,19 @@ fun DefaultPreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(navController: NavHostController, currentRoute: String?) {
-    // Determine the title based on the current route
+    // Don't show the main TopAppBar content if on the Report screen, as it has its own.
+    if (currentRoute == Screen.Reports.route) {
+        // Render an empty TopAppBar or nothing to avoid overlap/double elements
+        // TopAppBar(title = {}) // Option 1: Empty TopAppBar
+        return // Option 2: Don't render this TopAppBar at all for Reports screen
+    }
+
+    // Determine the title based on the current route (excluding Reports)
     val title = when (currentRoute) {
         Screen.Dashboard.route -> stringResource(id = R.string.dashboard_title)
-        Screen.Transactions.route -> stringResource(id = R.string.transactions_title) // Assuming you have this string
-        Screen.GoalList.route -> stringResource(id = R.string.goals_title) // Assuming you have this string
+        Screen.Transactions.route -> stringResource(id = R.string.transactions_title)
+        Screen.GoalList.route -> stringResource(id = R.string.goals_title)
         Screen.CategoryList.route -> stringResource(id = R.string.categories_title)
-        Screen.Reports.route -> stringResource(id = R.string.reports_title) // Assuming you have this string
         Screen.Settings.route -> stringResource(id = R.string.settings_title)
         // Add other screens here
         else -> stringResource(id = R.string.app_name) // Default title
@@ -269,6 +275,7 @@ fun AppTopBar(navController: NavHostController, currentRoute: String?) {
     TopAppBar(
         title = { Text(text = title) },
         navigationIcon = {
+            // Show back arrow only on Settings screen (as other screens are top-level)
             if (currentRoute == Screen.Settings.route) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
@@ -277,10 +284,11 @@ fun AppTopBar(navController: NavHostController, currentRoute: String?) {
                     )
                 }
             }
+            // Add other navigation icons for specific screens if needed later
         },
         actions = {
-            // Show settings icon on all screens except the Settings screen itself
-            if (currentRoute != Screen.Settings.route) {
+            // Show settings icon on screens managed by this TopAppBar, except Settings itself
+            if (currentRoute != Screen.Settings.route) { // Already excludes Reports route implicitly by the check at the start
                 IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {
                     Icon(
                         imageVector = Icons.Filled.Settings,

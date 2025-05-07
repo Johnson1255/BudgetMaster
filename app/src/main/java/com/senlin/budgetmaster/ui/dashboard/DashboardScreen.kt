@@ -54,19 +54,12 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold( // Use Scaffold to add TopAppBar
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(title = { Text(stringResource(id = R.string.dashboard_title)) }) // Use dashboard_title string
-        }
-    ) { innerPadding -> // Content lambda receives padding
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding), // Apply innerPadding from Scaffold
-            color = MaterialTheme.colorScheme.background
-        ) {
-            if (uiState.isLoading) {
+    // Scaffold is now handled by MainActivity
+    Surface(
+        modifier = modifier.fillMaxSize(), // Apply modifier passed from NavHost (should include padding)
+        color = MaterialTheme.colorScheme.background
+    ) {
+        if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -84,7 +77,6 @@ fun DashboardScreen(
             }
         }
         // Removed duplicated error/content blocks here
-    }
 }
 
 @Composable

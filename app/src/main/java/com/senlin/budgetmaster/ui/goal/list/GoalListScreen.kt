@@ -13,11 +13,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource // Ensure this is present
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.senlin.budgetmaster.data.model.Goal
-import com.senlin.budgetmaster.navigation.Screen
+import com.senlin.budgetmaster.R // Ensure this is present
+import com.senlin.budgetmaster.data.model.Goal // Should be correct
+import com.senlin.budgetmaster.navigation.Screen // Should be correct
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import java.text.NumberFormat
 import java.util.Locale
@@ -30,26 +32,25 @@ fun GoalListScreen(
 ) {
     val uiState by viewModel.goalListUiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Metas") })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.GoalEdit.createRoute(null)) }) { // Use createRoute with null for new goal
-                Icon(Icons.Filled.Add, contentDescription = "Agregar Meta")
-            }
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) { // Use a Box to contain FAB and content
         GoalListContent(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.fillMaxSize(), // Pass modifier, MainActivity's Scaffold will provide padding
             goals = uiState.goalList,
             onEditClick = { goalId ->
-                navController.navigate(Screen.GoalEdit.createRoute(goalId)) // Use createRoute for editing existing goal
+                navController.navigate(Screen.GoalEdit.createRoute(goalId))
             },
             onDeleteClick = { goal ->
                 viewModel.deleteGoal(goal)
             }
         )
+        FloatingActionButton(
+            onClick = { navController.navigate(Screen.GoalEdit.createRoute(null)) },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_goal_cd)) // Use string resource
+        }
     }
 }
 
@@ -125,10 +126,10 @@ fun GoalItem(
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onEditClick) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Editar Meta")
+                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.edit_goal_cd)) // Use string resource
                 }
                 IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Eliminar Meta")
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete_goal_cd)) // Use string resource
                 }
             }
         }

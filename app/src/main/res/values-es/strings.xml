@@ -12,14 +12,19 @@
 
     <!-- Transaction Screens -->
     <string name="transactions_title">Transacciones</string> <!-- For TopAppBar -->
+    <string name="add_transaction_cd">Añadir Transacción</string> <!-- For FAB -->
     <string name="add_transaction_title">Añadir Transacción</string>
     <string name="edit_transaction_title">Editar Transacción</string>
 
     <!-- Goal Screens -->
     <string name="goals_title">Metas</string> <!-- For TopAppBar -->
+    <string name="add_goal_cd">Añadir Meta</string>
+    <string name="edit_goal_cd">Editar Meta</string>
+    <string name="delete_goal_cd">Eliminar Meta</string>
 
     <!-- Category List Screen -->
     <string name="categories_title">Categorías</string>
+    <string name="add_category_cd">Añadir Categoría</string>
     <string name="edit_category_cd">Editar Categoría</string>
     <string name="delete_category_cd">Eliminar Categoría</string>
     <string name="navigate_back_description">Navegar hacia atrás</string>
@@ -35,6 +40,7 @@
     <!-- Dashboard Screen -->
     <string name="dashboard_title">Panel Principal</string>
     <string name="reports_title">Informes</string> <!-- For TopAppBar -->
+    <string name="export_report_cd">Exportar Informe</string> <!-- For Report Screen Action -->
     <string name="dashboard_current_balance">Saldo Actual</string>
     <string name="dashboard_recent_transactions">Transacciones Recientes</string>
     <string name="dashboard_saving_goals">Metas de Ahorro</string>

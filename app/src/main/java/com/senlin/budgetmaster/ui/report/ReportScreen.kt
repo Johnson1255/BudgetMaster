@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext // Import LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource // Import stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +28,7 @@ import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
+import com.senlin.budgetmaster.R // Import R
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import com.senlin.budgetmaster.ui.report.ReportType // Import ReportType
 import java.text.NumberFormat
@@ -56,25 +58,27 @@ fun ReportScreen(
 
     Scaffold(
         topBar = {
+            // Keep TopAppBar here because it needs the viewModel for the share action
             TopAppBar(
-                title = { Text("Reports") }, // More general title
+                title = { Text(stringResource(R.string.reports_title)) }, // Use string resource
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
-                actions = { // Add actions to TopAppBar
+                actions = {
                     IconButton(onClick = { viewModel.prepareCsvExport() }) {
                         Icon(
                             imageVector = Icons.Filled.Share,
-                            contentDescription = "Export Report"
+                            contentDescription = stringResource(R.string.export_report_cd) // Add this string resource
                         )
                     }
                 }
             )
         },
-        modifier = modifier
+        modifier = modifier // Apply modifier passed from NavHost
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) { // Wrap content in a Column
+        // Apply padding from the local Scaffold
+        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             // Tab Row for Report Type Selection
             TabRow(
                 selectedTabIndex = reportTypes.indexOf(uiState.selectedReportType),
@@ -352,7 +356,7 @@ fun ReportContent(
         } // End of Box for Chart/Summary
 
         // Divider
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         // Data Table Area (Scrollable)
         LazyColumn(
@@ -373,7 +377,7 @@ fun ReportContent(
                                 Text("Category", style = MaterialTheme.typography.titleSmall)
                                 Text("Amount", style = MaterialTheme.typography.titleSmall)
                             }
-                            Divider()
+                            HorizontalDivider()
                         }
                         items(uiState.categoryExpenses) { expense ->
                             Row(
@@ -390,7 +394,7 @@ fun ReportContent(
                      if (!uiState.isLoading) {
                          item { // Header
                              Text("Details", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 4.dp))
-                             Divider()
+                             HorizontalDivider()
                          }
                          item { DataTableRow("Total Income", uiState.totalIncome, currencyFormat, MaterialTheme.colorScheme.primary) }
                          item { DataTableRow("Total Expense", uiState.totalExpense, currencyFormat, MaterialTheme.colorScheme.error) }
@@ -407,7 +411,7 @@ fun ReportContent(
                                 Text("Date", style = MaterialTheme.typography.titleSmall)
                                 Text("Amount", style = MaterialTheme.typography.titleSmall)
                             }
-                            Divider()
+                            HorizontalDivider()
                         }
                         items(uiState.dailyExpenses) { daily ->
                             Row(

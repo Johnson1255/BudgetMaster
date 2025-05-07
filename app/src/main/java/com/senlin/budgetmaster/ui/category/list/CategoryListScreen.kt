@@ -40,22 +40,24 @@ fun CategoryListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(id = R.string.categories_title)) })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAddCategoryClick) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Category")
-            }
-        }
-    ) { paddingValues ->
+    // The Scaffold is now handled by MainActivity, so we directly use the content
+    // and pass the main modifier which might include padding from the main Scaffold.
+    Box(modifier = modifier.fillMaxSize()) { // Use a Box to contain FAB and content
         CategoryListContent(
-            modifier = Modifier.padding(paddingValues), // Pass modifier with padding
+            // Pass the modifier directly, it should include padding from the parent Scaffold in MainActivity
+            modifier = Modifier.fillMaxSize(),
             uiState = uiState,
             onEditClick = onEditCategoryClick,
             onDeleteClick = { category -> viewModel.deleteCategory(category) }
         )
+        FloatingActionButton(
+            onClick = onAddCategoryClick,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp) // Standard FAB padding
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_category_cd)) // Use string resource
+        }
     }
 }
 
