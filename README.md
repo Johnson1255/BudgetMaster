@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/BudgetMasterLogo.png" alt="BudgetMaster Logo" width="200"></p>
+
 # BudgetMaster 💰
 
 [![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
