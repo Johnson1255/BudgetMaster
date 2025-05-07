@@ -82,6 +82,10 @@ Esto es lo que está planeado para el desarrollo futuro:
 *   [ ] **Pruebas (Testing):** Añadir pruebas unitarias y de instrumentación completas.
 *   [ ] **Opcional:** Precargar categorías por defecto.
 
+## 🛡️ Seguridad
+
+La seguridad de este proyecto es importante. Por favor, revisa nuestra [Política de Seguridad](SECURITY.md) para entender cómo reportar vulnerabilidades.
+
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si deseas contribuir, por favor sigue estos pasos:
