@@ -107,22 +107,35 @@ fun CategoryItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Slightly increased elevation
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(all = 16.dp) // Increased padding for more breathing room
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = category.name, style = MaterialTheme.typography.bodyLarge)
-            Row {
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.titleMedium, // Slightly larger text for emphasis
+                modifier = Modifier.weight(1f) // Allow text to take available space
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp) // Add space between icons
+            ) {
                 IconButton(onClick = onEditClick) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Edit Category")
+                    Icon(
+                        Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.edit_category_cd), // Use string resource
+                        tint = MaterialTheme.colorScheme.primary // Consistent icon color
+                    )
                 }
                 IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete Category", tint = MaterialTheme.colorScheme.error)
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.delete_category_cd), // Use string resource
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }

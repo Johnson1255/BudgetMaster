@@ -15,6 +15,8 @@
 
     <!-- Category List Screen -->
     <string name="categories_title">Categories</string>
+    <string name="edit_category_cd">Edit Category</string>
+    <string name="delete_category_cd">Delete Category</string>
     <string name="navigate_back_description">Navigate back</string>
     <string name="amount_label">Amount</string>
     <string name="type_label">Type:</string>
