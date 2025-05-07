@@ -8,10 +8,15 @@
     <!-- Settings Screen -->
     <string name="settings_title">Configuración</string>
     <string name="language_setting_title">Idioma</string>
+    <string name="settings_action_description">Abrir Configuración</string>
 
-    <!-- Transaction Edit Screen -->
+    <!-- Transaction Screens -->
+    <string name="transactions_title">Transacciones</string> <!-- For TopAppBar -->
     <string name="add_transaction_title">Añadir Transacción</string>
     <string name="edit_transaction_title">Editar Transacción</string>
+
+    <!-- Goal Screens -->
+    <string name="goals_title">Metas</string> <!-- For TopAppBar -->
 
     <!-- Category List Screen -->
     <string name="categories_title">Categorías</string>
@@ -29,6 +34,7 @@
 
     <!-- Dashboard Screen -->
     <string name="dashboard_title">Panel Principal</string>
+    <string name="reports_title">Informes</string> <!-- For TopAppBar -->
     <string name="dashboard_current_balance">Saldo Actual</string>
     <string name="dashboard_recent_transactions">Transacciones Recientes</string>
     <string name="dashboard_saving_goals">Metas de Ahorro</string>
