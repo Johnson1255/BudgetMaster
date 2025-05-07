@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box // Import Box for centering
 import androidx.compose.material.icons.Icons // Import Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Import Back Arrow
 import androidx.compose.material.icons.filled.Settings // Import Settings icon for TopAppBar
 import androidx.compose.material3.CircularProgressIndicator // Import loading indicator
 import androidx.compose.material3.ExperimentalMaterial3Api // For TopAppBar
@@ -267,13 +268,23 @@ fun AppTopBar(navController: NavHostController, currentRoute: String?) {
 
     TopAppBar(
         title = { Text(text = title) },
+        navigationIcon = {
+            if (currentRoute == Screen.Settings.route) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.navigate_back_description) // Re-use existing or add specific
+                    )
+                }
+            }
+        },
         actions = {
             // Show settings icon on all screens except the Settings screen itself
             if (currentRoute != Screen.Settings.route) {
                 IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {
                     Icon(
                         imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(id = R.string.settings_action_description) // Add this string
+                        contentDescription = stringResource(id = R.string.settings_action_description)
                     )
                 }
             }
