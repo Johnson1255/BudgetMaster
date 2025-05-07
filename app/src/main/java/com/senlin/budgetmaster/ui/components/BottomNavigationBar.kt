@@ -29,8 +29,7 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Transactions", Icons.Filled.AccountBalanceWallet, Screen.Transactions.route),
         BottomNavItem("Goals", Icons.Filled.Savings, Screen.GoalList.route), // Updated route
         BottomNavItem("Categories", Icons.Filled.Category, Screen.CategoryList.route), // Added Categories item
-        BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route),
-        BottomNavItem("Settings", Icons.Filled.Settings, Screen.Settings.route) // Added Settings item
+        BottomNavItem("Reports", Icons.Filled.Assessment, Screen.Reports.route)
     )
 
     NavigationBar {

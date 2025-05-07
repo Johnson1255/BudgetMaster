@@ -7,9 +7,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box // Import Box for centering
+import androidx.compose.material.icons.Icons // Import Icons
+import androidx.compose.material.icons.filled.Settings // Import Settings icon for TopAppBar
 import androidx.compose.material3.CircularProgressIndicator // Import loading indicator
+import androidx.compose.material3.ExperimentalMaterial3Api // For TopAppBar
+import androidx.compose.material3.Icon // For IconButton
+import androidx.compose.material3.IconButton // For TopAppBar actions
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar // Import TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment // Import Alignment for centering
 import androidx.compose.ui.Modifier
@@ -42,6 +48,7 @@ import com.senlin.budgetmaster.BudgetMasterApplication // Import Application cla
 import android.content.Context // Import Context for setLocale
 import android.util.Log // Import Log for debugging
 import android.content.res.Configuration // Import Configuration for setLocale
+import androidx.compose.ui.res.stringResource // For string resources
 import androidx.appcompat.app.AppCompatDelegate // Import AppCompatDelegate for locale setting
 import androidx.core.os.LocaleListCompat // Import LocaleListCompat for locale setting
 import com.senlin.budgetmaster.ui.ViewModelFactory // Import ViewModelFactory
@@ -90,6 +97,11 @@ fun BudgetMasterApp(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            topBar = {
+                if (currentRoute != Screen.Splash.route) {
+                    AppTopBar(navController = navController, currentRoute = currentRoute)
+                }
+            },
             bottomBar = {
                 // Only show bottom bar if not on the splash screen
                 if (currentRoute != Screen.Splash.route) {
@@ -236,6 +248,37 @@ fun PlaceholderScreen(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun DefaultPreview() {
     BudgetMasterApp() // Preview the whole app structure
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppTopBar(navController: NavHostController, currentRoute: String?) {
+    // Determine the title based on the current route
+    val title = when (currentRoute) {
+        Screen.Dashboard.route -> stringResource(id = R.string.dashboard_title)
+        Screen.Transactions.route -> stringResource(id = R.string.transactions_title) // Assuming you have this string
+        Screen.GoalList.route -> stringResource(id = R.string.goals_title) // Assuming you have this string
+        Screen.CategoryList.route -> stringResource(id = R.string.categories_title)
+        Screen.Reports.route -> stringResource(id = R.string.reports_title) // Assuming you have this string
+        Screen.Settings.route -> stringResource(id = R.string.settings_title)
+        // Add other screens here
+        else -> stringResource(id = R.string.app_name) // Default title
+    }
+
+    TopAppBar(
+        title = { Text(text = title) },
+        actions = {
+            // Show settings icon on all screens except the Settings screen itself
+            if (currentRoute != Screen.Settings.route) {
+                IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = stringResource(id = R.string.settings_action_description) // Add this string
+                    )
+                }
+            }
+        }
+    )
 }
 
 // Helper function to update the app's locale
