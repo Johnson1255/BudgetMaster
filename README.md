@@ -81,6 +81,13 @@ Esto es lo que está planeado para el desarrollo futuro:
 *   [ ] **Lógica de Negocio:** Implementar operaciones CRUD en ViewModels, cálculos para reportes/dashboard.
 *   [ ] **Pruebas (Testing):** Añadir pruebas unitarias y de instrumentación completas.
 *   [ ] **Opcional:** Precargar categorías por defecto.
+*   [ ] **Autenticación de Usuarios (Login/Registro):**
+    *   [ ] Permitir que múltiples usuarios utilicen la aplicación con datos separados.
+    *   [ ] **Consideración:** Actualmente, la aplicación funciona de manera offline, almacenando todos los datos localmente en el dispositivo.
+    *   [ ] Implementar pantallas de inicio de sesión y registro.
+    *   [ ] Modificar la estructura de la base de datos (Room) para asociar todos los datos (transacciones, categorías, metas) a un `userId`.
+    *   [ ] Asegurar el manejo adecuado de credenciales y datos sensibles.
+    *   [ ] **Opcional (Fase 2):** Explorar la posibilidad de sincronización en la nube para los datos de usuario.
 
 ## 🛡️ Seguridad
 
