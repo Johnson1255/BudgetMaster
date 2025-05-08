@@ -14,10 +14,11 @@ import java.time.LocalDate // Import LocalDate
  */
 data class TransactionListUiState(
     val transactions: List<Transaction> = emptyList(),
-    val isLoading: Boolean = false,
-    val categoryMap: Map<Long, String> = emptyMap(), // Add map for category names
-    val startDate: LocalDate? = null, // Add start date state
-    val endDate: LocalDate? = null,   // Add end date state
+    val isLoading: Boolean = true, // Start as loading until userId is confirmed
+    val categoryMap: Map<Long, String> = emptyMap(),
+    val startDate: LocalDate? = null,
+    val endDate: LocalDate? = null,
+    val currentUserId: Long? = null // Track the user ID
     // Add other state properties like error messages if needed
 )
 
@@ -31,49 +32,63 @@ class TransactionListViewModel(private val budgetRepository: BudgetRepository) :
     private val _endDate = MutableStateFlow<LocalDate?>(null)
     val endDate: StateFlow<LocalDate?> = _endDate.asStateFlow()
 
-    // Flow for categories (to avoid fetching repeatedly)
-    private val categoriesFlow = budgetRepository.getAllCategories()
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), replay = 1)
+    // StateFlow for the current user ID - to be set by the UI layer
+    private val _currentUserId = MutableStateFlow<Long?>(null)
 
-    // Combine date filters and categories to fetch transactions
+    // Flow for categories, dependent on userId
+    private val categoriesFlow: Flow<List<Category>> = _currentUserId.flatMapLatest { userId ->
+        if (userId != null && userId != 0L) {
+            budgetRepository.getAllCategories(userId)
+        } else {
+            flowOf(emptyList()) // No user, no categories
+        }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), replay = 1)
+
+    // Combine userId, date filters, and categories to fetch transactions
     val uiState: StateFlow<TransactionListUiState> =
-        combine(_startDate, _endDate) { start, end ->
-            Pair(start, end) // Combine dates into a pair
-        }.flatMapLatest { (start, end) ->
-            // Fetch transactions based on the date range
-            val transactionsFlow = if (start != null && end != null) {
-                // Ensure start is before or equal to end before querying
-                if (!start.isAfter(end)) {
-                    budgetRepository.getTransactionsBetweenDates(start, end) // Use existing repo method
-                } else {
-                    // Handle invalid date range (e.g., return empty flow or show error)
-                    flowOf(emptyList()) // Return empty list for now
-                }
+        combine(_currentUserId, _startDate, _endDate) { userId, start, end ->
+            Triple(userId, start, end) // Combine userId and dates
+        }.flatMapLatest { (userId, start, end) ->
+            if (userId == null || userId == 0L) {
+                // If no valid user ID, return a default/loading state immediately
+                flowOf(TransactionListUiState(isLoading = true, currentUserId = null))
             } else {
-                budgetRepository.getAllTransactions() // Fetch all if no range selected
-            }
+                // Fetch transactions based on the userId and date range
+                val transactionsFlow = if (start != null && end != null) {
+                    if (!start.isAfter(end)) {
+                        budgetRepository.getTransactionsBetweenDates(userId, start, end)
+                    } else {
+                        flowOf(emptyList())
+                    }
+                } else {
+                    budgetRepository.getAllTransactions(userId) // Fetch all for the user
+                }
 
-            // Combine the determined transactions flow with the categories flow
-            combine(transactionsFlow, categoriesFlow) { transactions, categories ->
-                val categoryMap = categories.associateBy({ it.id }, { it.name })
-                TransactionListUiState(
-                    transactions = transactions,
-                    categoryMap = categoryMap,
-                    startDate = start, // Pass dates to UI state
-                    endDate = end,
-                    isLoading = false // Data loaded
-                )
+                // Combine the determined transactions flow with the categories flow
+                combine(transactionsFlow, categoriesFlow) { transactions, categories ->
+                    val categoryMap = categories.associateBy({ it.id }, { it.name })
+                    TransactionListUiState(
+                        transactions = transactions,
+                        categoryMap = categoryMap,
+                        startDate = start,
+                        endDate = end,
+                        currentUserId = userId, // Include userId in state
+                        isLoading = false // Data loaded for this user
+                    )
+                }
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-            // Initial state: loading, no dates selected
-            initialValue = TransactionListUiState(isLoading = true)
+            initialValue = TransactionListUiState(isLoading = true) // Initial state: loading
         )
 
+    // --- Public functions ---
 
-    // --- Public functions to update dates ---
+    fun setCurrentUserId(userId: Long?) {
+        _currentUserId.value = userId
+    }
 
     fun setStartDate(date: LocalDate?) {
         _startDate.value = date
@@ -88,16 +103,19 @@ class TransactionListViewModel(private val budgetRepository: BudgetRepository) :
         _endDate.value = null
     }
 
-
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L // 5 seconds
     }
 
-    // TODO: Add functions for deleting or interacting with transactions if needed
-    // Example:
+    // TODO: Update deleteTransaction if added, to ensure it uses the correct userId implicitly via the transaction object
     // fun deleteTransaction(transaction: Transaction) {
     //     viewModelScope.launch {
-    //         budgetRepository.deleteTransaction(transaction)
+    //         // Ensure transaction object has the correct userId before deleting
+    //         if (transaction.userId == _currentUserId.value) {
+    //              budgetRepository.deleteTransaction(transaction)
+    //         } else {
+    //              // Handle error or log: mismatch user ID
+    //         }
     //     }
     // }
 }

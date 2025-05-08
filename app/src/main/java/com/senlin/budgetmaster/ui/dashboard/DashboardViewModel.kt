@@ -27,14 +27,19 @@ class DashboardViewModel(private val budgetRepository: BudgetRepository) : ViewM
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
-    init {
-        loadDashboardData()
-    }
+    // Removed init block, data loading should be triggered by the UI when userId is available
 
-    private fun loadDashboardData() {
+    fun loadDataForUser(userId: Long) {
+        // Prevent loading if userId is invalid (though UI should ideally handle this)
+        if (userId == 0L) {
+            _uiState.value = DashboardUiState(isLoading = false, errorMessage = "Invalid user ID.")
+            return
+        }
+        _uiState.value = DashboardUiState(isLoading = true) // Set loading state
+
         viewModelScope.launch {
-            val transactionsFlow = budgetRepository.getAllTransactions()
-            val goalsFlow = budgetRepository.getAllGoals()
+            val transactionsFlow = budgetRepository.getAllTransactions(userId)
+            val goalsFlow = budgetRepository.getAllGoals(userId)
 
             combine(transactionsFlow, goalsFlow) { transactions, goals ->
                 // Filter transactions to exclude those linked to a goal for balance calculation

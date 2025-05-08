@@ -9,19 +9,14 @@ import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType
 import com.senlin.budgetmaster.data.repository.BudgetRepository
 import com.senlin.budgetmaster.navigation.Screen
-// import kotlinx.coroutines.channels.Channel // Remove Channel import
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.firstOrNull
-// import kotlinx.coroutines.flow.receiveAsFlow // Remove receiveAsFlow import
 import java.time.LocalDate
-// Removed unused imports
 
 // Define a constant for the placeholder category name
 private const val GOAL_CONTRIBUTION_CATEGORY_NAME = "Goal Contribution"
 
-// Wrapper interface or common base class could be used, but Any works for now
 data class TransactionEditUiState(
     val transactionId: Long? = null,
     val amount: String = "",
@@ -31,10 +26,10 @@ data class TransactionEditUiState(
     val date: LocalDate = LocalDate.now(),
     val note: String = "",
     val isSaving: Boolean = false,
-    @Deprecated("Use errorMessage instead for specific errors") val isError: Boolean = false, // Keep for general errors if needed, but prefer errorMessage
-    val errorMessage: String? = null, // For specific error messages like insufficient funds
+    val errorMessage: String? = null,
     val isLoading: Boolean = true,
-    val goalContributionCategoryId: Long? = null // To store the ID of the placeholder category
+    val goalContributionCategoryId: Long? = null,
+    val currentUserId: Long? = null // Added userId
 )
 
 class TransactionEditViewModel(
@@ -45,68 +40,62 @@ class TransactionEditViewModel(
     private val _uiState = MutableStateFlow(TransactionEditUiState())
     val uiState: StateFlow<TransactionEditUiState> = _uiState.asStateFlow()
 
-    // SharedFlow for signalling save success event (more robust for one-time events)
-    private val _saveSuccessEvent = MutableSharedFlow<Unit>(replay = 0) // Use SharedFlow with replay=0
-    val saveSuccessEvent = _saveSuccessEvent.asSharedFlow() // Expose as SharedFlow
+    private val _saveSuccessEvent = MutableSharedFlow<Unit>(replay = 0)
+    val saveSuccessEvent = _saveSuccessEvent.asSharedFlow()
 
-
-    // Get transactionId as Long? from SavedStateHandle
-    // Get transactionId as Long? from SavedStateHandle
     private val transactionId: Long? = savedStateHandle[Screen.TRANSACTION_ID_ARG]
 
-    init {
-        val idToLoad = if (transactionId == -1L) null else transactionId
-        loadInitialData(idToLoad)
+    // Property to hold the current user ID
+    private var currentUserId: Long? = null
+
+    // Call this from the UI layer once the userId is available
+    fun initialize(userId: Long) {
+        if (currentUserId == null) { // Prevent re-initialization
+            currentUserId = userId
+            _uiState.update { it.copy(currentUserId = userId) }
+            val idToLoad = if (transactionId == -1L) null else transactionId
+            loadInitialData(userId, idToLoad)
+        }
     }
 
-    private fun loadInitialData(idToLoad: Long?) {
+
+    private fun loadInitialData(userId: Long, idToLoad: Long?) {
         viewModelScope.launch {
-            _uiState.update { state -> state.copy(isLoading = true, isError = false) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                // Fetch categories and goals concurrently within the launch block
-                val categoriesDeferred = viewModelScope.async { repository.getAllCategories().first() } // Call async on viewModelScope
-                val goalsDeferred = viewModelScope.async { repository.getAllGoals().first() } // Call async on viewModelScope
+                // Fetch categories and goals for the specific user
+                val categoriesDeferred = viewModelScope.async { repository.getAllCategories(userId).first() }
+                val goalsDeferred = viewModelScope.async { repository.getAllGoals(userId).first() }
 
-                val categories = categoriesDeferred.await()
-                 val goals = goalsDeferred.await()
+                var categories = categoriesDeferred.await()
+                val goals = goalsDeferred.await()
 
-                // Find or create the "Goal Contribution" category
-                var goalContributionCategory = categories.find { category -> category.name == GOAL_CONTRIBUTION_CATEGORY_NAME } // Use explicit 'category'
+                // Find or create the "Goal Contribution" category for this user
+                var goalContributionCategory = categories.find { it.name == GOAL_CONTRIBUTION_CATEGORY_NAME }
+                var goalContributionCategoryId = goalContributionCategory?.id
+
                 if (goalContributionCategory == null) {
-                     // If it doesn't exist, create it (assuming repository has insert method)
-                    // This might need more robust handling (e.g., check if creation succeeded)
-                    val newCategory = Category(name = GOAL_CONTRIBUTION_CATEGORY_NAME)
+                    val newCategory = Category(name = GOAL_CONTRIBUTION_CATEGORY_NAME, userId = userId) // Set userId
                     repository.insertCategory(newCategory)
                     // Re-fetch categories to get the ID
-                    val updatedCategories = repository.getAllCategories().first() // Fetch again
-                    goalContributionCategory = updatedCategories.find { category -> category.name == GOAL_CONTRIBUTION_CATEGORY_NAME } // Use explicit 'category'
-                    // Consider error handling if category still not found/created
-                }
-                val goalContributionCategoryId = goalContributionCategory?.id
-
-                // Use updatedCategories if fetched, otherwise original categories
-                // Ensure explicit lambda parameter 'category' is used in find
-                val currentCategories = if (goalContributionCategory != null && categories.find { category -> category.id == goalContributionCategoryId } == null) {
-                    repository.getAllCategories().first()
-                } else {
-                    categories
+                    categories = repository.getAllCategories(userId).first() // Fetch again for this user
+                    goalContributionCategory = categories.find { it.name == GOAL_CONTRIBUTION_CATEGORY_NAME }
+                    goalContributionCategoryId = goalContributionCategory?.id
                 }
 
-                val combinedItems: List<Any> = currentCategories.filterNot { category -> category.id == goalContributionCategoryId } + goals // Use explicit 'category'
+                val combinedItems: List<Any> = categories.filterNot { it.id == goalContributionCategoryId } + goals
 
                 var initialSelectedItem: Any? = null
-                 if (idToLoad != null) {
-                     val transaction = repository.getTransactionById(idToLoad).first()
-                     if (transaction != null) {
-                         // Determine if it was linked to a goal or a regular category
-                         initialSelectedItem = if (transaction.goalId != null) {
-                             goals.find { goal -> goal.id == transaction.goalId } // Use explicit 'goal'
-                         } else {
-                             // Use currentCategories list which includes the potentially newly added one
-                             currentCategories.find { category -> category.id == transaction.categoryId } // Use explicit 'category'
-                         }
+                if (idToLoad != null) {
+                    val transaction = repository.getTransactionById(idToLoad, userId).first() // Use userId
+                    if (transaction != null) {
+                        initialSelectedItem = if (transaction.goalId != null) {
+                            goals.find { it.id == transaction.goalId }
+                        } else {
+                            categories.find { it.id == transaction.categoryId }
+                        }
 
-                        _uiState.update { state -> // Use explicit 'state'
+                        _uiState.update { state ->
                             state.copy(
                                 transactionId = transaction.id,
                                 amount = transaction.amount.toString(),
@@ -120,87 +109,85 @@ class TransactionEditViewModel(
                             )
                         }
                     } else {
-                        // Transaction ID provided but not found
-                        _uiState.update { state -> state.copy(isLoading = false, isError = true, availableItems = combinedItems, goalContributionCategoryId = goalContributionCategoryId) } // Use explicit 'state'
+                        _uiState.update { it.copy(isLoading = false, errorMessage = "Transaction not found.", availableItems = combinedItems, goalContributionCategoryId = goalContributionCategoryId) }
                     }
                 } else {
                     // New transaction
-                    _uiState.update { state -> // Use explicit 'state'
+                    _uiState.update { state ->
                         state.copy(
                             availableItems = combinedItems,
                             isLoading = false,
-                            selectedItem = combinedItems.firstOrNull(), // Default selection
+                            selectedItem = combinedItems.firstOrNull(),
                             goalContributionCategoryId = goalContributionCategoryId
                         )
                     }
                 }
             } catch (e: Exception) {
-                // Log exception properly
-                _uiState.update { state -> state.copy(isLoading = false, isError = true) } // Use explicit 'state'
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Failed to load data: ${e.message}") }
             }
         }
     }
 
-     fun updateAmount(newAmount: String) {
-        _uiState.update { state -> state.copy(amount = newAmount) } // Use explicit 'state'
+    fun updateAmount(newAmount: String) {
+        _uiState.update { it.copy(amount = newAmount, errorMessage = null) } // Clear error on update
     }
 
     fun updateType(newType: TransactionType) {
-        _uiState.update { state -> state.copy(type = newType) } // Use explicit 'state'
+        _uiState.update { it.copy(type = newType) }
     }
 
-    // Renamed from updateCategory/updateGoal
     fun updateSelectedItem(item: Any?) {
-        _uiState.update { state -> state.copy(selectedItem = item) } // Use explicit 'state'
+        _uiState.update { it.copy(selectedItem = item) }
     }
 
-     fun updateDate(newDate: LocalDate) {
-         _uiState.update { state -> state.copy(date = newDate) } // Use explicit 'state'
-     }
+    fun updateDate(newDate: LocalDate) {
+        _uiState.update { it.copy(date = newDate) }
+    }
 
-     fun updateNote(newNote: String) {
-         _uiState.update { state -> state.copy(note = newNote) } // Use explicit 'state'
-     }
+    fun updateNote(newNote: String) {
+        _uiState.update { it.copy(note = newNote) }
+    }
 
-     fun saveTransaction() {
-         val currentState = uiState.value // This is the correct declaration
-         // Ensure an item is selected and we have the goal contribution category ID if needed
-         if (currentState.isSaving || currentState.selectedItem == null ||
-             (currentState.selectedItem is Goal && currentState.goalContributionCategoryId == null)) {
-             // Potentially set an error state to inform the user
-             _uiState.update { state -> state.copy(isError = true) } // Use explicit 'state'
-             return
-         }
+    fun saveTransaction() {
+        val userId = currentUserId // Get the stored userId
+        if (userId == null || userId == 0L) {
+            _uiState.update { it.copy(errorMessage = "User not identified.") }
+            return
+        }
 
-         val amountDouble = currentState.amount.toDoubleOrNull()
-         if (amountDouble == null || amountDouble <= 0) { // Also ensure amount is positive
-             _uiState.update { state -> state.copy(isError = true, isSaving = false) } // Set error, stop saving
-             return
-         }
+        val currentState = uiState.value
+        if (currentState.isSaving || currentState.selectedItem == null ||
+            (currentState.selectedItem is Goal && currentState.goalContributionCategoryId == null)) {
+            _uiState.update { it.copy(errorMessage = "Please select a category or goal.") }
+            return
+        }
 
-        _uiState.update { state -> state.copy(isSaving = true, isError = false) }
+        val amountDouble = currentState.amount.toDoubleOrNull()
+        if (amountDouble == null || amountDouble <= 0) {
+            _uiState.update { it.copy(errorMessage = "Please enter a valid positive amount.") }
+            return
+        }
+
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
         viewModelScope.launch {
-             try {
-                val selectedItem = currentState.selectedItem // Shadow variable for smart casting
+            try {
+                val selectedItem = currentState.selectedItem
 
-                // --- Validation for Goal Overspending ---
+                // Validation for Goal Overspending
                 if (selectedItem is Goal && currentState.type == TransactionType.EXPENSE) {
-                    val goal = repository.getGoalById(selectedItem.id).firstOrNull()
+                    // Fetch goal using userId
+                    val goal = repository.getGoalById(selectedItem.id, userId).firstOrNull()
                     if (goal != null && amountDouble > goal.currentAmount) {
-                        // Trying to spend more than available in the goal
                         _uiState.update { state ->
                             state.copy(
                                 isSaving = false,
-                                // isError = true // Keep or remove based on general error handling needs
-                                errorMessage = "Insufficient funds in the selected goal." // Set specific message
+                                errorMessage = "Insufficient funds in the selected goal."
                             )
                         }
-                        return@launch // Stop the saving process
+                        return@launch
                     }
                 }
-                // --- End Validation ---
-
 
                 val categoryIdToSave: Long
                 val goalIdToSave: Long?
@@ -211,21 +198,19 @@ class TransactionEditViewModel(
                         goalIdToSave = null
                     }
                     is Goal -> {
-                        // We already checked goalContributionCategoryId is not null above
-                        categoryIdToSave = currentState.goalContributionCategoryId!!
+                        categoryIdToSave = currentState.goalContributionCategoryId!! // Already checked not null
                         goalIdToSave = selectedItem.id
                     }
                     else -> {
-                        // Should not happen due to initial check, but handle defensively
-                        _uiState.update { it.copy(isSaving = false, isError = true) }
-                        return@launch // Stop if item is somehow null or wrong type
-                        // throw IllegalStateException("Selected item is not Category or Goal") // Alternative
+                        _uiState.update { it.copy(isSaving = false, errorMessage = "Invalid item selected.") }
+                        return@launch
                     }
                 }
 
                 val transactionToSave = Transaction(
-                    id = currentState.transactionId ?: 0L, // Use 0L for new transaction
-                    amount = amountDouble, // Use validated amount
+                    id = currentState.transactionId ?: 0L,
+                    userId = userId, // Set the userId
+                    amount = amountDouble,
                     type = currentState.type,
                     categoryId = categoryIdToSave,
                     goalId = goalIdToSave,
@@ -234,23 +219,18 @@ class TransactionEditViewModel(
                 )
 
                 if (transactionToSave.id == 0L) {
-                     repository.insertTransaction(transactionToSave)
-                 } else {
-                     repository.updateTransaction(transactionToSave)
-                 }
-                _uiState.update { state -> state.copy(isSaving = false) } // Reset saving state
-                _saveSuccessEvent.emit(Unit) // Emit success signal!
+                    repository.insertTransaction(transactionToSave)
+                } else {
+                    repository.updateTransaction(transactionToSave)
+                }
+                _uiState.update { it.copy(isSaving = false) }
+                _saveSuccessEvent.emit(Unit)
             } catch (e: Exception) {
-                 // Log exception properly
-                 // Ensure isSaving is false even on error
-                _uiState.update { state -> state.copy(isSaving = false, isError = true) } // Use explicit 'state'
+                _uiState.update { it.copy(isSaving = false, errorMessage = "Failed to save transaction: ${e.message}") }
             }
-         }
-     }
+        }
+    }
 
-    /**
-     * Clears the current error message, typically after the user acknowledges it.
-     */
     fun dismissErrorDialog() {
         _uiState.update { it.copy(errorMessage = null) }
     }

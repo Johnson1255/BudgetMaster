@@ -21,16 +21,16 @@ interface GoalDao {
     @Delete
     suspend fun deleteGoal(goal: Goal)
 
-    @Query("SELECT * FROM goals WHERE id = :id")
-    fun getGoalById(id: Long): Flow<Goal?>
+    @Query("SELECT * FROM goals WHERE id = :id AND userId = :userId")
+    fun getGoalById(id: Long, userId: Long): Flow<Goal?>
 
-    @Query("SELECT * FROM goals ORDER BY creationDate DESC")
-    fun getAllGoals(): Flow<List<Goal>>
+    @Query("SELECT * FROM goals WHERE userId = :userId ORDER BY creationDate DESC")
+    fun getAllGoals(userId: Long): Flow<List<Goal>>
 
-    @Query("UPDATE goals SET currentAmount = currentAmount + :amount WHERE id = :goalId")
-    suspend fun addAmountToGoal(goalId: Long, amount: Double)
+    @Query("UPDATE goals SET currentAmount = currentAmount + :amount WHERE id = :goalId AND userId = :userId")
+    suspend fun addAmountToGoal(goalId: Long, amount: Double, userId: Long)
 
     // Optional: Query to update current amount for a goal
-    @Query("UPDATE goals SET currentAmount = :newAmount WHERE id = :goalId")
-    suspend fun updateGoalAmount(goalId: Long, newAmount: Double)
+    @Query("UPDATE goals SET currentAmount = :newAmount WHERE id = :goalId AND userId = :userId")
+    suspend fun updateGoalAmount(goalId: Long, newAmount: Double, userId: Long)
 }

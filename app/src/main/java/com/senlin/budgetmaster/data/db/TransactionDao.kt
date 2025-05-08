@@ -23,16 +23,16 @@ interface TransactionDao {
     @Delete
     suspend fun deleteTransaction(transaction: Transaction)
 
-    @Query("SELECT * FROM transactions WHERE id = :id")
-    fun getTransactionById(id: Long): Flow<Transaction?>
+    @Query("SELECT * FROM transactions WHERE id = :id AND userId = :userId")
+    fun getTransactionById(id: Long, userId: Long): Flow<Transaction?>
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
-    fun getAllTransactions(): Flow<List<Transaction>>
+    @Query("SELECT * FROM transactions WHERE userId = :userId ORDER BY date DESC")
+    fun getAllTransactions(userId: Long): Flow<List<Transaction>>
 
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
-    fun getTransactionsBetweenDates(startDate: LocalDate, endDate: LocalDate): Flow<List<Transaction>> // Use LocalDate
+    @Query("SELECT * FROM transactions WHERE userId = :userId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    fun getTransactionsBetweenDates(userId: Long, startDate: LocalDate, endDate: LocalDate): Flow<List<Transaction>> // Use LocalDate
 
     // Add more specific queries as needed, e.g., by type or category
-    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY date DESC")
-    fun getTransactionsByCategoryId(categoryId: Long): Flow<List<Transaction>>
+    @Query("SELECT * FROM transactions WHERE userId = :userId AND categoryId = :categoryId ORDER BY date DESC")
+    fun getTransactionsByCategoryId(userId: Long, categoryId: Long): Flow<List<Transaction>>
 }

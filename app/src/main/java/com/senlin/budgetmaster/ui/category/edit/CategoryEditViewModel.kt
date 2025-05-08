@@ -13,12 +13,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class CategoryUiState(
-    val id: Long = 0L, // Changed to Long
+    val id: Long = 0L,
     val name: String = "",
     val isEntryValid: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val currentUserId: Long? = null // Keep track of userId
 )
 
 class CategoryEditViewModel(
@@ -29,23 +30,35 @@ class CategoryEditViewModel(
     var categoryUiState by mutableStateOf(CategoryUiState())
         private set
 
-    // Retrieve categoryId as Long? Default to 0L if null (for new category)
     private val categoryId: Long = savedStateHandle.get<Long>("categoryId") ?: 0L
+    private var currentUserId: Long? = null // Store userId locally in VM
 
-    init {
-        // Load category if categoryId is not 0 (i.e., editing existing)
-        if (categoryId != 0L) {
-            viewModelScope.launch {
-                categoryUiState = categoryUiState.copy(isLoading = true)
-                try {
-                    // Use getCategoryById with Long ID
-                    val category = repository.getCategoryById(categoryId)
-                        .filterNotNull()
-                        .first()
-                    categoryUiState = category.toCategoryUiState(isEntryValid = true, isLoading = false)
-                } catch (e: Exception) {
-                    categoryUiState = categoryUiState.copy(isLoading = false, error = "Failed to load category: ${e.message}")
-                }
+    // Call this from UI layer when userId is available
+    fun initialize(userId: Long) {
+        if (currentUserId == null) { // Prevent re-initialization
+            currentUserId = userId
+            // Initialize UI state with the userId, setting loading based on whether we need to fetch
+            categoryUiState = CategoryUiState(currentUserId = userId, isLoading = (categoryId != 0L))
+            if (categoryId != 0L) {
+                loadCategory(userId, categoryId)
+            }
+        }
+    }
+
+    private fun loadCategory(userId: Long, categoryIdToLoad: Long) {
+        viewModelScope.launch {
+            // Ensure isLoading is true before starting fetch
+            if (!categoryUiState.isLoading) {
+                 categoryUiState = categoryUiState.copy(isLoading = true)
+            }
+            try {
+                val category = repository.getCategoryById(categoryIdToLoad, userId)
+                    .filterNotNull()
+                    .first()
+                // Convert using the correct extension function, passing userId
+                categoryUiState = category.toCategoryUiState(userId, isEntryValid = true, isLoading = false)
+            } catch (e: Exception) {
+                categoryUiState = categoryUiState.copy(isLoading = false, error = "Failed to load category: ${e.message}")
             }
         }
     }
@@ -58,17 +71,22 @@ class CategoryEditViewModel(
     }
 
     suspend fun saveCategory(): Boolean {
+        val userId = currentUserId // Use the locally stored userId
+        if (userId == null || userId == 0L) {
+             categoryUiState = categoryUiState.copy(isLoading = false, error = "User not identified.")
+             return false
+        }
         if (!validateInput(categoryUiState.name)) {
-            return false
+            return false // Keep UI state as is, validation failed
         }
         categoryUiState = categoryUiState.copy(isLoading = true, error = null)
         return try {
-            val category = categoryUiState.toCategory()
-            // Check against 0L for new category
+            // Convert using the correct extension function, passing userId
+            val category = categoryUiState.toCategory(userId)
             if (category.id == 0L) {
-                repository.insertCategory(category)
+                repository.insertCategory(category) // userId is set within category object
             } else {
-                repository.updateCategory(category)
+                repository.updateCategory(category) // userId is set within category object
             }
             categoryUiState = categoryUiState.copy(isLoading = false, isSaved = true)
             true
@@ -83,15 +101,20 @@ class CategoryEditViewModel(
     }
 }
 
-// Extension functions to map between data model and UI state
-fun Category.toCategoryUiState(isEntryValid: Boolean = false, isLoading: Boolean = false): CategoryUiState = CategoryUiState(
-    id = id, // id is already Long in Category model
+// Extension function to map Category data model to CategoryUiState
+// Added userId parameter
+fun Category.toCategoryUiState(userId: Long?, isEntryValid: Boolean = false, isLoading: Boolean = false): CategoryUiState = CategoryUiState(
+    id = id,
     name = name,
     isEntryValid = isEntryValid,
-    isLoading = isLoading
+    isLoading = isLoading,
+    currentUserId = userId // Set userId in UI state
 )
 
-fun CategoryUiState.toCategory(): Category = Category(
-    id = id, // id is Long in CategoryUiState now
+// Extension function to map CategoryUiState to Category data model
+// Added userId parameter
+fun CategoryUiState.toCategory(userId: Long): Category = Category(
+    id = id,
+    userId = userId, // Set userId from parameter
     name = name
 )

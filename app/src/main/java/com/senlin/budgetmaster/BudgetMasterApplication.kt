@@ -77,7 +77,8 @@ class AppContainer(private val context: Context) { // Make context a property if
         OfflineBudgetRepository(
             transactionDao = database.transactionDao(),
             categoryDao = database.categoryDao(),
-            goalDao = database.goalDao()
+            goalDao = database.goalDao(),
+            userDao = database.userDao() // Added userDao
         )
     }
     // Lazily initialize UserSettingsRepository

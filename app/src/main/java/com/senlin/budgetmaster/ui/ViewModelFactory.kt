@@ -18,6 +18,7 @@ import com.senlin.budgetmaster.ui.category.edit.CategoryEditViewModel // Import 
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditViewModel // Import TransactionEditViewModel
 import com.senlin.budgetmaster.ui.MainViewModel // Import MainViewModel
 import com.senlin.budgetmaster.ui.settings.SettingsViewModel // Import SettingsViewModel
+import com.senlin.budgetmaster.ui.auth.AuthViewModel // Import AuthViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire BudgetMaster app
@@ -82,6 +83,14 @@ object ViewModelFactory {
         // Initializer for SettingsViewModel
         initializer {
             SettingsViewModel(budgetMasterApplication().container.userSettingsRepository)
+        }
+
+        // Initializer for AuthViewModel
+        initializer {
+            AuthViewModel(
+                budgetMasterApplication().container.budgetRepository,
+                budgetMasterApplication().container.userSettingsRepository
+            )
         }
      }
  }

@@ -21,13 +21,13 @@ interface CategoryDao {
     @Delete
     suspend fun deleteCategory(category: Category)
 
-    @Query("SELECT * FROM categories WHERE id = :id")
-    fun getCategoryById(id: Long): Flow<Category?>
+    @Query("SELECT * FROM categories WHERE id = :id AND userId = :userId")
+    fun getCategoryById(id: Long, userId: Long): Flow<Category?>
 
-    @Query("SELECT * FROM categories ORDER BY name ASC")
-    fun getAllCategories(): Flow<List<Category>>
+    @Query("SELECT * FROM categories WHERE userId = :userId ORDER BY name ASC")
+    fun getAllCategories(userId: Long): Flow<List<Category>>
 
-    // Optional: Query to find category by name
-    @Query("SELECT * FROM categories WHERE name = :name LIMIT 1")
-    fun getCategoryByName(name: String): Flow<Category?>
+    // Optional: Query to find category by name for a specific user
+    @Query("SELECT * FROM categories WHERE name = :name AND userId = :userId LIMIT 1")
+    fun getCategoryByName(name: String, userId: Long): Flow<Category?>
 }

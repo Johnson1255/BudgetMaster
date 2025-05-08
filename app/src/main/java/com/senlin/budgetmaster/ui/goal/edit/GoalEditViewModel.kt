@@ -18,72 +18,117 @@ class GoalEditViewModel(
     private val budgetRepository: BudgetRepository
 ) : ViewModel() {
 
-    // Retrieve goalId, defaulting to -1L (consistent with NavArgument default) if missing/null
-    private val goalId: Long = savedStateHandle.get<Long>(Screen.GOAL_ID_ARG) ?: -1L
+    private val goalId: Long = savedStateHandle.get<Long>(Screen.GOAL_ID_ARG) ?: 0L // Default to 0L for new goal
 
     var goalUiState by mutableStateOf(GoalUiState())
         private set
 
-    init {
-        viewModelScope.launch {
-            if (goalId > 0) {
-                goalUiState = budgetRepository.getGoalById(goalId) // Correct method name
-                    .filterNotNull()
-                    .first()
-                    .toGoalUiState(isEntryValid = true) // Assume valid initially when loading existing
+    private var currentUserId: Long? = null // Store userId
+
+    // Call this from UI layer when userId is available
+    fun initialize(userId: Long) {
+        if (currentUserId == null) { // Prevent re-initialization
+            currentUserId = userId
+            // Initialize UI state with the userId, setting loading based on whether we need to fetch
+            goalUiState = GoalUiState(currentUserId = userId, isLoading = (goalId != 0L))
+            if (goalId != 0L) {
+                loadGoal(userId, goalId)
             }
         }
     }
 
+     private fun loadGoal(userId: Long, goalIdToLoad: Long) {
+         viewModelScope.launch {
+             // Ensure isLoading is true before starting fetch
+             if (!goalUiState.isLoading) {
+                 goalUiState = goalUiState.copy(isLoading = true)
+             }
+             try {
+                 goalUiState = budgetRepository.getGoalById(goalIdToLoad, userId)
+                     .filterNotNull()
+                     .first()
+                     .toGoalUiState(userId, isEntryValid = true, isLoading = false) // Pass userId
+             } catch (e: Exception) {
+                 goalUiState = goalUiState.copy(isLoading = false, error = "Failed to load goal: ${e.message}")
+             }
+         }
+     }
+
     fun updateUiState(newGoalUiState: GoalUiState) {
-        goalUiState = newGoalUiState.copy(isEntryValid = validateInput(newGoalUiState))
+        // Preserve the currentUserId when updating other fields
+        goalUiState = newGoalUiState.copy(
+            isEntryValid = validateInput(newGoalUiState),
+            currentUserId = currentUserId // Ensure userId is maintained
+        )
     }
 
-    suspend fun saveGoal() {
-        if (validateInput()) {
-            val goalToSave = goalUiState.toGoal()
-            if (goalId > 0) {
-                budgetRepository.updateGoal(goalToSave)
-            } else {
+    suspend fun saveGoal(): Boolean {
+        val userId = currentUserId
+        if (userId == null || userId == 0L) {
+            goalUiState = goalUiState.copy(isLoading = false, error = "User not identified.")
+            return false
+        }
+        if (!validateInput()) {
+             goalUiState = goalUiState.copy(error = "Invalid input. Please check fields.") // Provide error message
+            return false
+        }
+        goalUiState = goalUiState.copy(isLoading = true, error = null)
+        return try {
+            val goalToSave = goalUiState.toGoal(userId) // Pass userId
+            if (goalToSave.id == 0L) { // Check against 0L for new goal
                 budgetRepository.insertGoal(goalToSave)
+            } else {
+                budgetRepository.updateGoal(goalToSave)
             }
+            goalUiState = goalUiState.copy(isLoading = false) // Indicate saving finished
+            true // Indicate success
+        } catch (e: Exception) {
+            goalUiState = goalUiState.copy(isLoading = false, error = "Failed to save goal: ${e.message}")
+            false // Indicate failure
         }
     }
 
     private fun validateInput(uiState: GoalUiState = goalUiState): Boolean {
         return with(uiState) {
-            name.isNotBlank() && targetAmount.isNotBlank() && targetAmount.toDoubleOrNull() != null && targetAmount.toDouble() > 0
-            // Add currentAmount validation if needed, though it often starts at 0
-            // Add targetDate validation if needed
+            val targetAmountDouble = targetAmount.toDoubleOrNull()
+            name.isNotBlank() && targetAmount.isNotBlank() && targetAmountDouble != null && targetAmountDouble > 0
         }
     }
 }
 
 data class GoalUiState(
-    val id: Long = 0,
+    val id: Long = 0L, // Use 0L as default for new goal
     val name: String = "",
     val targetAmount: String = "",
-    val currentAmount: String = "0.0", // Keep as String for TextField
-    val targetDate: LocalDate? = null, // Use LocalDate
-    val creationDate: LocalDate = LocalDate.now(), // Use LocalDate and set current date
-    val isEntryValid: Boolean = false
+    val currentAmount: String = "0.0",
+    val targetDate: LocalDate? = null,
+    val creationDate: LocalDate = LocalDate.now(),
+    val isEntryValid: Boolean = false,
+    val isLoading: Boolean = false, // Add loading state
+    val error: String? = null,     // Add error state
+    val currentUserId: Long? = null // Add user ID state
 )
 
-fun Goal.toGoalUiState(isEntryValid: Boolean = false): GoalUiState = GoalUiState(
+// Update extension function to include userId
+fun Goal.toGoalUiState(userId: Long?, isEntryValid: Boolean = false, isLoading: Boolean = false): GoalUiState = GoalUiState(
     id = id,
     name = name,
     targetAmount = targetAmount.toString(),
     currentAmount = currentAmount.toString(),
     targetDate = targetDate,
     creationDate = creationDate,
-    isEntryValid = isEntryValid
+    isEntryValid = isEntryValid,
+    isLoading = isLoading,
+    currentUserId = userId // Set userId
 )
 
-fun GoalUiState.toGoal(): Goal = Goal(
+// Update extension function to include userId
+fun GoalUiState.toGoal(userId: Long): Goal = Goal(
     id = id,
+    userId = userId, // Set userId
     name = name,
     targetAmount = targetAmount.toDoubleOrNull() ?: 0.0,
     currentAmount = currentAmount.toDoubleOrNull() ?: 0.0,
     targetDate = targetDate,
-    creationDate = creationDate
+    creationDate = creationDate // creationDate is already set in UiState
 )

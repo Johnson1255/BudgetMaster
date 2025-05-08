@@ -4,57 +4,73 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.repository.BudgetRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class CategoryListUiState(
     val categories: List<Category> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
+    val isLoading: Boolean = true, // Start loading until userId is known
+    val error: String? = null,
+    val currentUserId: Long? = null // Track user ID
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CategoryListViewModel(private val repository: BudgetRepository) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
-    val uiState: StateFlow<CategoryListUiState> = _uiState.asStateFlow()
+    // StateFlow for the current user ID - to be set by the UI layer
+    private val _currentUserId = MutableStateFlow<Long?>(null)
 
-    init {
-        loadCategories()
-    }
-
-    fun loadCategories() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            // Use the correct repository method
-            repository.getAllCategories()
-                .catch { exception ->
-                    _uiState.value = _uiState.value.copy(
+    val uiState: StateFlow<CategoryListUiState> = _currentUserId.flatMapLatest { userId ->
+        if (userId == null || userId == 0L) {
+            // No valid user, return loading/empty state
+            flowOf(CategoryListUiState(isLoading = true, currentUserId = null))
+        } else {
+            // Valid user, fetch categories
+            repository.getAllCategories(userId)
+                .map { categories ->
+                    CategoryListUiState(
+                        categories = categories,
                         isLoading = false,
-                        error = "Failed to load categories: ${exception.message}"
+                        currentUserId = userId
                     )
                 }
-                .collect { categories ->
-                    _uiState.value = _uiState.value.copy(
-                        categories = categories,
-                        isLoading = false
-                    )
+                .catch { exception ->
+                    // Emit error state
+                    emit(CategoryListUiState(
+                        isLoading = false,
+                        error = "Failed to load categories: ${exception.message}",
+                        currentUserId = userId
+                    ))
                 }
         }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = CategoryListUiState(isLoading = true) // Initial state is loading
+    )
+
+    fun setCurrentUserId(userId: Long?) {
+        _currentUserId.value = userId
     }
 
     fun deleteCategory(category: Category) {
-        viewModelScope.launch {
-            try {
-                repository.deleteCategory(category)
-                // No need to manually update state, Flow should emit the new list
-            } catch (e: Exception) {
-                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to delete category: ${e.message}"
-                )
+        // Ensure the category belongs to the current user before deleting
+        if (category.userId == _currentUserId.value) {
+            viewModelScope.launch {
+                try {
+                    repository.deleteCategory(category)
+                    // StateFlow should automatically update due to the underlying Flow change
+                } catch (e: Exception) {
+                    // Optionally update UI state with a specific error message for deletion failure
+                    // For now, the main flow's catch block might handle repository errors.
+                    // Consider adding a specific deletion error state if needed.
+                     println("Error deleting category: ${e.message}") // Log error
+                }
             }
+        } else {
+             println("Error: Attempted to delete category belonging to another user.")
+             // Optionally set an error message in the UI state
         }
     }
 }
