@@ -9,10 +9,11 @@ import androidx.room.TypeConverters
 import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.Goal
 import com.senlin.budgetmaster.data.model.Transaction
+import com.senlin.budgetmaster.data.model.User
 
 @Database(
-    entities = [Transaction::class, Category::class, Goal::class],
-    version = 2, // Incremented version due to schema change
+    entities = [Transaction::class, Category::class, Goal::class, User::class],
+    version = 3, // Incremented version due to schema change
     exportSchema = true // Export schema for auto-migration verification
     // Removed autoMigrations as 1.json is missing
 )
@@ -22,6 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
     abstract fun goalDao(): GoalDao
+    abstract fun userDao(): UserDao
 
     companion object {
         // Singleton prevents multiple instances of database opening at the
