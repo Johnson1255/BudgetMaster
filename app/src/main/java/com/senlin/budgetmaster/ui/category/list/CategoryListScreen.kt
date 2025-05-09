@@ -25,11 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.senlin.budgetmaster.R
 import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.ui.ViewModelFactory
+import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,7 +127,7 @@ fun CategoryItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = category.name,
+                text = getLocalizedCategoryName(englishCategoryName = category.name),
                 style = MaterialTheme.typography.titleMedium, // Slightly larger text for emphasis
                 modifier = Modifier.weight(1f) // Allow text to take available space
             )
@@ -148,5 +150,59 @@ fun CategoryItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun getLocalizedCategoryName(englishCategoryName: String): String {
+    val resourceId = when (englishCategoryName) {
+        "Housing" -> R.string.category_housing
+        "Transportation" -> R.string.category_transportation
+        "Food" -> R.string.category_food
+        "Utilities" -> R.string.category_utilities
+        "Healthcare" -> R.string.category_healthcare
+        "Personal Care" -> R.string.category_personal_care
+        "Entertainment" -> R.string.category_entertainment
+        "Debt Payments" -> R.string.category_debt_payments
+        "Investments" -> R.string.category_investments
+        "Miscellaneous/Other" -> R.string.category_miscellaneous_other
+        else -> 0 // Fallback: if 0, we'll use the original name from DB
+    }
+    return if (resourceId != 0) stringResource(id = resourceId) else englishCategoryName
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryItemPreview() {
+    BudgetMasterTheme {
+        CategoryItem(
+            category = Category(id = 1, userId = 1, name = "Food"),
+            onEditClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryItemMiscellaneousPreview() {
+    BudgetMasterTheme {
+        CategoryItem(
+            category = Category(id = 1, userId = 1, name = "Miscellaneous/Other"),
+            onEditClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryItemUserCreatedPreview() {
+    BudgetMasterTheme {
+        CategoryItem(
+            category = Category(id = 1, userId = 1, name = "My Custom Stuff"),
+            onEditClick = {},
+            onDeleteClick = {}
+        )
     }
 }

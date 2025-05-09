@@ -100,4 +100,16 @@
     <string name="category_goal_label">Category/Goal</string>
     <string name="no_categories_goals_available">No categories or goals available.</string>
     <string name="select_date_description">Select Date</string>
+
+    <!-- Default Category Names -->
+    <string name="category_housing">Housing</string>
+    <string name="category_transportation">Transportation</string>
+    <string name="category_food">Food</string>
+    <string name="category_utilities">Utilities</string>
+    <string name="category_healthcare">Healthcare</string>
+    <string name="category_personal_care">Personal Care</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_debt_payments">Debt Payments</string>
+    <string name="category_investments">Investments</string>
+    <string name="category_miscellaneous_other">Miscellaneous/Other</string>
 </resources>

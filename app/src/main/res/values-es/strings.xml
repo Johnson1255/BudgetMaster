@@ -100,4 +100,16 @@
     <string name="category_goal_label">Categoría / Meta</string>
     <string name="no_categories_goals_available">No hay categorías o metas disponibles</string>
     <string name="select_date_description">Seleccionar Fecha</string>
+
+    <!-- Default Category Names (Spanish) -->
+    <string name="category_housing">Vivienda</string>
+    <string name="category_transportation">Transporte</string>
+    <string name="category_food">Alimentación</string>
+    <string name="category_utilities">Servicios Públicos</string>
+    <string name="category_healthcare">Salud</string>
+    <string name="category_personal_care">Cuidado Personal</string>
+    <string name="category_entertainment">Entretenimiento</string>
+    <string name="category_debt_payments">Pago de Deudas</string>
+    <string name="category_investments">Inversiones</string>
+    <string name="category_miscellaneous_other">Misceláneos/Otros</string>
 </resources>
