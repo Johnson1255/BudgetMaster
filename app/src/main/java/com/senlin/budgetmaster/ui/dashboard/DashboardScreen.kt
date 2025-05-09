@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar // Import TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect // Import LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,9 +51,23 @@ import java.util.Locale // Keep Locale for NumberFormat
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
-    viewModel: DashboardViewModel = viewModel(factory = ViewModelFactory.Factory) // Use correct factory
+    viewModel: DashboardViewModel = viewModel(factory = ViewModelFactory.Factory), // Use correct factory
+    userId: Long? // Add userId parameter
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Load data when userId is available and valid
+    LaunchedEffect(userId) {
+        if (userId != null && userId != 0L) {
+            viewModel.loadDataForUser(userId)
+        }
+        // If userId is null or 0L, the ViewModel's loadDataForUser handles setting an error state,
+        // or the UI will remain in its initial loading/empty state if not explicitly handled.
+        // The current DashboardViewModel.loadDataForUser already sets an error for userId == 0L.
+        // If userId is null, uiState.isLoading will likely remain true or uiState.errorMessage will be null,
+        // leading to CircularProgressIndicator or the content being shown (which would be empty).
+        // Consider adding a specific state for "invalid user" if userId is null.
+    }
 
     // Scaffold is now handled by MainActivity
     Surface(

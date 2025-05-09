@@ -213,7 +213,54 @@ fun AppNavHost(
         }
 
         composable(Screen.Dashboard.route) {
-            DashboardScreen(modifier = Modifier)
+            // val currentUserId = mainViewModel.uiState.value.currentUserId // Incorrect: Don't use .value directly in composition
+            // Get mainUiState from BudgetMasterApp or re-collect if AppNavHost is too far down.
+            // For simplicity here, assuming mainViewModel is accessible and we can collect its state again if needed,
+            // or ideally, pass mainUiState down.
+            // However, mainViewModel is already instantiated in AppNavHost.
+            // The mainUiState is collected in BudgetMasterApp.
+            // Let's re-evaluate how to get currentUserId here.
+            // The mainViewModel instance is available in AppNavHost.
+            // We should use the mainUiState that is already collected in the parent `BudgetMasterApp` composable.
+            // To do this properly, currentUserId should be passed as a parameter to AppNavHost,
+            // or AppNavHost should collect it itself if it's the most direct consumer.
+
+            // Let's collect it directly in AppNavHost as it's used for navigation logic there too.
+            // No, `mainViewModel` is already available in `AppNavHost`.
+            // The `mainUiState` is collected in `BudgetMasterApp`.
+            // The most straightforward way without major refactoring of parameter passing is to use the
+            // `mainViewModel` instance already available in `AppNavHost` and collect the specific piece of state needed.
+            // Or, more correctly, `mainUiState` should be passed down from `BudgetMasterApp` to `AppNavHost`.
+
+            // Correct approach: `mainUiState` is already collected in `BudgetMasterApp`.
+            // We need to access `mainUiState.currentUserId` which is available in `BudgetMasterApp`.
+            // `AppNavHost` is called from `BudgetMasterApp`.
+            // `mainViewModel` is passed to `BudgetMasterApp`.
+            // `mainViewModel` is also re-instantiated in `AppNavHost` - this is redundant.
+            // Let's use the `mainUiState` from `BudgetMasterApp`.
+
+            // The `mainViewModel` instance in `AppNavHost` is the same as in `BudgetMasterApp` due to `viewModel()` factory.
+            // So we can collect the state here again, or pass `mainUiState` down.
+            // For now, let's use the `mainViewModel` available in `AppNavHost` and collect the state.
+            // This is slightly less efficient than passing `mainUiState` down, but avoids changing function signatures for now.
+
+            // The lint error is because `mainViewModel.uiState.value` is used.
+            // `mainViewModel` is available in `AppNavHost`.
+            // `mainUiState` is collected in `BudgetMasterApp`.
+            // The `mainViewModel` in `AppNavHost` is the same instance.
+            // We need to use `collectAsState()` here if we are to get `currentUserId` from `mainViewModel.uiState`.
+
+            // Let's look at where `mainViewModel` is defined in `AppNavHost`:
+            // val mainViewModel: MainViewModel = viewModel(factory = ViewModelFactory.Factory)
+            // This will provide the *same* instance as in `BudgetMasterApp`.
+            // So, we can collect the state from this instance.
+
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state here for currentUserId
+
+            DashboardScreen(
+                modifier = Modifier,
+                userId = mainUiStateForNav.currentUserId // Pass userId to DashboardScreen
+            )
         }
 
         composable(Screen.Transactions.route) {
