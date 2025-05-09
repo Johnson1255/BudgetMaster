@@ -255,8 +255,8 @@ fun GoalItemCard(goal: Goal, modifier: Modifier = Modifier) {
 // --- Helper Functions ---
 
 fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance() // Use default locale currency
-    // You might want to customize the locale: NumberFormat.getCurrencyInstance(Locale("es", "CO")) for COP
+    // Explicitly use Colombian Peso (COP) locale
+    val format = NumberFormat.getCurrencyInstance(Locale("es", "CO"))
     return format.format(amount)
 }
 
