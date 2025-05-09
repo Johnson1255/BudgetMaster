@@ -1,61 +1,103 @@
 <resources>
     <string name="app_name">BudgetMaster</string>
-    <string name="splash_welcome">¡Bienvenido a BudgetMaster!</string>
-    <string name="splash_select_language">Por favor selecciona tu idioma:</string>
-    <string name="language_english">Inglés</string>
-    <string name="language_spanish">Español</string>
-
-    <!-- Settings Screen -->
-    <string name="settings_title">Configuración</string>
-    <string name="language_setting_title">Idioma</string>
-    <string name="settings_action_description">Abrir Configuración</string>
-
-    <!-- Transaction Screens -->
-    <string name="transactions_title">Transacciones</string> <!-- For TopAppBar -->
-    <string name="add_transaction_cd">Añadir Transacción</string> <!-- For FAB -->
-    <string name="add_transaction_title">Añadir Transacción</string>
-    <string name="edit_transaction_title">Editar Transacción</string>
-
-    <!-- Goal Screens -->
-    <string name="goals_title">Metas</string> <!-- For TopAppBar -->
-    <string name="add_goal_cd">Añadir Meta</string>
-    <string name="edit_goal_cd">Editar Meta</string>
-    <string name="delete_goal_cd">Eliminar Meta</string>
-
-    <!-- Category List Screen -->
+    <string name="email_label">Correo Electrónico</string>
+    <string name="password_label">Contraseña</string>
+    <string name="login_button_text">Iniciar Sesión</string>
+    <string name="register_button_text">Registrarse</string>
+    <string name="username_label">Nombre de usuario</string>
+    <string name="confirm_password_label">Confirmar Contraseña</string>
+    <string name="don_t_have_an_account_register">¿No tienes cuenta? Regístrate</string>
+    <string name="already_have_an_account_login">¿Ya tienes cuenta? Inicia Sesión</string>
+    <string name="dashboard_title">Panel Principal</string>
+    <string name="transactions_title">Transacciones</string>
+    <string name="goals_title">Metas</string>
+    <string name="reports_title">Informes</string>
     <string name="categories_title">Categorías</string>
+    <string name="settings_title">Configuración</string>
+    <string name="add_transaction_cd">Añadir Transacción</string>
     <string name="add_category_cd">Añadir Categoría</string>
     <string name="edit_category_cd">Editar Categoría</string>
     <string name="delete_category_cd">Eliminar Categoría</string>
     <string name="navigate_back_description">Navegar hacia atrás</string>
-    <string name="amount_label">Monto</string>
-    <string name="type_label">Tipo:</string>
-    <string name="note_label_optional">Nota (Opcional)</string>
-    <string name="save_button">Guardar</string>
-    <string name="category_goal_label">Categoría / Meta</string>
-    <string name="no_categories_goals_available">No hay categorías o metas disponibles</string>
-    <string name="date_label">Fecha</string>
-    <string name="select_date_description">Seleccionar Fecha</string>
-
-    <!-- Dashboard Screen -->
-    <string name="dashboard_title">Panel Principal</string>
-    <string name="reports_title">Informes</string> <!-- For TopAppBar -->
-    <string name="export_report_cd">Exportar Informe</string> <!-- For Report Screen Action -->
+    <string name="settings_action_description">Abrir Configuración</string>
+    <string name="logout_action_description">Cerrar Sesión</string>
     <string name="dashboard_current_balance">Saldo Actual</string>
     <string name="dashboard_recent_transactions">Transacciones Recientes</string>
-    <string name="dashboard_saving_goals">Metas de Ahorro</string>
     <string name="dashboard_no_recent_transactions">No hay transacciones recientes.</string>
+    <string name="dashboard_saving_goals">Metas de Ahorro</string>
     <string name="dashboard_no_saving_goals">No hay metas de ahorro establecidas.</string>
+    <string name="select_language_title">Seleccionar Idioma</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_spanish">Español</string>
+    <string name="save_button_text">Guardar</string>
+    <string name="cancel_button_text">Cancelar</string>
+    <string name="category_name_label">Nombre de Categoría</string>
+    <string name="edit_category_title">Editar Categoría</string>
+    <string name="add_category_title">Añadir Categoría</string>
+    <string name="goal_name_label">Nombre de la Meta</string>
+    <string name="target_amount_label">Monto Objetivo</string>
+    <string name="current_amount_label">Monto Actual (Opcional)</string>
+    <string name="deadline_label">Fecha Límite (Opcional)</string>
+    <string name="add_goal_title">Añadir Meta</string>
+    <string name="edit_goal_title">Editar Meta</string>
+    <string name="delete_goal_confirmation">¿Estás seguro de que quieres eliminar esta meta?</string>
+    <string name="delete_dialog_confirm">Eliminar</string>
+    <string name="delete_dialog_cancel">Cancelar</string>
+    <string name="add_goal_cd">Añadir Meta</string>
+    <string name="edit_goal_cd">Editar Meta</string>
+    <string name="delete_goal_cd">Eliminar Meta</string>
+    <string name="no_goals_message">Aún no hay metas. ¡Toca \'+\' para añadir una!</string>
+    <string name="amount_label">Monto</string>
+    <string name="category_label">Categoría</string>
+    <string name="date_label">Fecha</string>
+    <string name="note_label">Nota (Opcional)</string>
+    <string name="type_label">Tipo</string> <!-- Changed from "Tipo:" to "Tipo" to match default -->
+    <string name="income_label">Ingreso</string>
+    <string name="expense_label">Gasto</string>
+    <string name="add_transaction_title">Añadir Transacción</string>
+    <string name="edit_transaction_title">Editar Transacción</string>
+    <string name="select_category_placeholder">Seleccionar Categoría</string>
+    <string name="delete_transaction_confirmation">¿Estás seguro de que quieres eliminar esta transacción?</string>
+    <string name="report_type_label">Tipo de Informe</string>
+    <string name="report_period_label">Período del Informe</string>
+    <string name="report_generate_button">Generar Informe</string>
+    <string name="report_income_vs_expense">Ingresos vs Gastos</string>
+    <string name="report_expense_by_category">Gastos por Categoría</string>
+    <string name="report_monthly">Mensual</string>
+    <string name="report_yearly">Anual</string>
+    <string name="report_custom_range">Rango Personalizado</string>
+    <string name="report_total_income">Ingresos Totales:</string>
+    <string name="report_total_expense">Gastos Totales:</string>
+    <string name="report_net_savings">Ahorro Neto:</string>
+    <string name="report_no_data">No hay datos disponibles para los criterios seleccionados.</string>
+    <string name="report_start_date">Fecha de Inicio</string>
+    <string name="report_end_date">Fecha de Fin</string>
+    <string name="settings_language_label">Idioma</string>
+    <string name="settings_dark_mode_label">Modo Oscuro</string>
+    <string name="settings_notifications_label">Habilitar Notificaciones</string>
+    <string name="settings_data_management_title">Gestión de Datos</string>
+    <string name="settings_export_data_button">Exportar Datos</string>
+    <string name="settings_import_data_button">Importar Datos</string>
+    <string name="settings_logout_button">Cerrar Sesión</string> <!-- This key was "logout_button" in the previous es file, aligning with default -->
+    <string name="settings_confirm_logout_title">Confirmar Cierre de Sesión</string>
+    <string name="settings_confirm_logout_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="settings_confirm_dialog_yes">Sí</string>
+    <string name="settings_confirm_dialog_no">No</string>
 
-    <!-- Auth Screens -->
+    <!-- Strings from the "Restored/Added Strings" section of default strings.xml -->
     <string name="login_title">Iniciar Sesión</string>
+    <string name="login_button">Iniciar Sesión</string> <!-- Already existed, value confirmed -->
+    <string name="navigate_to_register_link">¿No tienes cuenta? Regístrate</string> <!-- Already existed, value confirmed -->
     <string name="register_title">Registrarse</string>
-    <string name="username_label">Nombre de usuario</string>
-    <string name="password_label">Contraseña</string>
-    <string name="confirm_password_label">Confirmar Contraseña</string>
-    <string name="login_button">Iniciar Sesión</string>
-    <string name="register_button">Registrarse</string>
-    <string name="navigate_to_register_link">¿No tienes cuenta? Regístrate</string>
-    <string name="navigate_to_login_link">¿Ya tienes cuenta? Inicia Sesión</string>
-    <string name="logout_button">Cerrar Sesión</string>
+    <string name="register_button">Registrarse</string> <!-- Already existed, value confirmed -->
+    <string name="navigate_to_login_link">¿Ya tienes cuenta? Inicia Sesión</string> <!-- Already existed, value confirmed -->
+    <string name="export_report_cd">Exportar Informe</string>
+    <string name="language_setting_title">Idioma</string> <!-- Already existed as "Idioma" -->
+    <string name="splash_welcome">¡Bienvenido a BudgetMaster!</string>
+    <string name="splash_select_language">Por favor selecciona tu idioma:</string>
+    <string name="note_label_optional">Nota (Opcional)</string>
+    <string name="save_button">Guardar</string> <!-- Already existed, value confirmed -->
+    <string name="category_goal_label">Categoría / Meta</string>
+    <string name="no_categories_goals_available">No hay categorías o metas disponibles</string>
+    <string name="select_date_description">Seleccionar Fecha</string>
 </resources>
