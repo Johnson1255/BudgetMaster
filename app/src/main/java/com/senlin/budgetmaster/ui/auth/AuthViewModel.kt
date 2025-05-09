@@ -2,6 +2,7 @@ package com.senlin.budgetmaster.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.senlin.budgetmaster.data.model.Category
 import com.senlin.budgetmaster.data.model.User
 import com.senlin.budgetmaster.data.preferences.UserSettingsRepository
 import com.senlin.budgetmaster.data.repository.BudgetRepository
@@ -59,9 +60,26 @@ class AuthViewModel(
 
                 val hashedPassword = PasswordHasher.hashPassword(passwordRaw)
                 val newUser = User(username = username, hashedPassword = hashedPassword)
-                val newUserId = budgetRepository.insertUser(newUser)
+                val newUserId: Long = budgetRepository.insertUser(newUser)
                 if (newUserId > 0) {
                     userSettingsRepository.saveCurrentUserId(newUserId)
+
+                    // Add default categories for the new user
+                    val defaultCategories = listOf(
+                        "Housing", "Transportation", "Food", "Utilities", "Healthcare",
+                        "Personal Care", "Entertainment", "Debt Payments", "Investments", "Miscellaneous/Other"
+                    )
+                    defaultCategories.forEach { categoryName ->
+                        try {
+                            budgetRepository.insertCategory(Category(userId = newUserId, name = categoryName))
+                        } catch (e: Exception) {
+                            // Log or handle category insertion error, but don't let it block registration
+                            // For example, log e.message
+                            // This is important if a category name somehow already exists for this new user (should not happen)
+                            // or other DB constraint violations.
+                        }
+                    }
+
                     _uiState.value = AuthScreenUiState(authState = AuthState.SUCCESS)
                 } else {
                     _uiState.value = AuthScreenUiState(authState = AuthState.ERROR, errorMessage = "Registration failed. Please try again.")
