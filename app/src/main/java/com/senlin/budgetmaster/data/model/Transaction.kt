@@ -16,7 +16,11 @@ enum class TransactionType {
 
 @Entity(
     tableName = "transactions",
-    indices = [Index(value = ["userId"])],
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["categoryId"]),
+        Index(value = ["goalId"])
+    ],
     foreignKeys = [
         ForeignKey(
             entity = User::class,

@@ -78,7 +78,7 @@ fun BudgetMasterTheme(
         SideEffect {
             val window = (view.context as Activity).window
             // Set status bar color - consider using background or primary container for less intrusion
-            window.statusBarColor = colorScheme.background.toArgb()
+            window.setStatusBarColor(colorScheme.background.toArgb()) // Use setStatusBarColor to avoid deprecation
             // Set status bar icons light/dark based on theme
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }

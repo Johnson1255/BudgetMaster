@@ -46,4 +46,16 @@
     <string name="dashboard_saving_goals">Metas de Ahorro</string>
     <string name="dashboard_no_recent_transactions">No hay transacciones recientes.</string>
     <string name="dashboard_no_saving_goals">No hay metas de ahorro establecidas.</string>
+
+    <!-- Auth Screens -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="register_title">Registrarse</string>
+    <string name="username_label">Nombre de usuario</string>
+    <string name="password_label">Contraseña</string>
+    <string name="confirm_password_label">Confirmar Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="register_button">Registrarse</string>
+    <string name="navigate_to_register_link">¿No tienes cuenta? Regístrate</string>
+    <string name="navigate_to_login_link">¿Ya tienes cuenta? Inicia Sesión</string>
+    <string name="logout_button">Cerrar Sesión</string>
 </resources>
