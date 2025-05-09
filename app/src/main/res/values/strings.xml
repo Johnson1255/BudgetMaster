@@ -1,61 +1,86 @@
 <resources>
     <string name="app_name">BudgetMaster</string>
-    <string name="splash_welcome">Welcome to BudgetMaster!</string>
-    <string name="splash_select_language">Please select your language:</string>
-    <string name="language_english">English</string>
-    <string name="language_spanish">Spanish</string>
-
-    <!-- Settings Screen -->
-    <string name="settings_title">Settings</string>
-    <string name="language_setting_title">Language</string>
-    <string name="settings_action_description">Open Settings</string>
-
-    <!-- Transaction Screens -->
-    <string name="transactions_title">Transactions</string> <!-- For TopAppBar -->
-    <string name="add_transaction_cd">Add Transaction</string> <!-- For FAB -->
-    <string name="add_transaction_title">Add Transaction</string>
-    <string name="edit_transaction_title">Edit Transaction</string>
-
-    <!-- Goal Screens -->
-    <string name="goals_title">Goals</string> <!-- For TopAppBar -->
-    <string name="add_goal_cd">Add Goal</string>
-    <string name="edit_goal_cd">Edit Goal</string>
-    <string name="delete_goal_cd">Delete Goal</string>
-
-    <!-- Category List Screen -->
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button_text">Login</string>
+    <string name="register_button_text">Register</string>
+    <string name="username_label">Username</string>
+    <string name="confirm_password_label">Confirm Password</string>
+    <string name="don_t_have_an_account_register">"Don't have an account? Register"</string>
+    <string name="already_have_an_account_login">"Already have an account? Login"</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="transactions_title">Transactions</string>
+    <string name="goals_title">Goals</string>
+    <string name="reports_title">Reports</string>
     <string name="categories_title">Categories</string>
+    <string name="settings_title">Settings</string>
+    <string name="add_transaction_cd">Add Transaction</string>
     <string name="add_category_cd">Add Category</string>
     <string name="edit_category_cd">Edit Category</string>
     <string name="delete_category_cd">Delete Category</string>
-    <string name="navigate_back_description">Navigate back</string>
-    <string name="amount_label">Amount</string>
-    <string name="type_label">Type:</string>
-    <string name="note_label_optional">Note (Optional)</string>
-    <string name="save_button">Save</string>
-    <string name="category_goal_label">Category / Goal</string>
-    <string name="no_categories_goals_available">No categories or goals available</string>
-    <string name="date_label">Date</string>
-    <string name="select_date_description">Select Date</string>
-
-    <!-- Dashboard Screen -->
-    <string name="dashboard_title">Dashboard</string>
-    <string name="reports_title">Reports</string> <!-- For TopAppBar -->
-    <string name="export_report_cd">Export Report</string> <!-- For Report Screen Action -->
+    <string name="navigate_back_description">Navigate Back</string>
+    <string name="settings_action_description">Settings</string>
+    <string name="logout_action_description">Logout</string> <!-- Added this line -->
     <string name="dashboard_current_balance">Current Balance</string>
     <string name="dashboard_recent_transactions">Recent Transactions</string>
-    <string name="dashboard_saving_goals">Saving Goals</string>
     <string name="dashboard_no_recent_transactions">No recent transactions.</string>
-    <string name="dashboard_no_saving_goals">No saving goals set.</string>
-
-    <!-- Auth Screens -->
-    <string name="login_title">Login</string>
-    <string name="register_title">Register</string>
-    <string name="username_label">Username</string>
-    <string name="password_label">Password</string>
-    <string name="confirm_password_label">Confirm Password</string>
-    <string name="login_button">Login</string>
-    <string name="register_button">Register</string>
-    <string name="navigate_to_register_link">Don\'t have an account? Register</string>
-    <string name="navigate_to_login_link">Already have an account? Login</string>
-    <string name="logout_button">Logout</string>
+    <string name="dashboard_saving_goals">Saving Goals</string>
+    <string name="dashboard_no_saving_goals">No saving goals set up yet.</string>
+    <string name="select_language_title">Select Language</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Español</string>
+    <string name="save_button_text">Save</string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="category_name_label">Category Name</string>
+    <string name="edit_category_title">Edit Category</string>
+    <string name="add_category_title">Add Category</string>
+    <string name="goal_name_label">Goal Name</string>
+    <string name="target_amount_label">Target Amount</string>
+    <string name="current_amount_label">Current Amount (Optional)</string>
+    <string name="deadline_label">Deadline (Optional)</string>
+    <string name="add_goal_title">Add Goal</string>
+    <string name="edit_goal_title">Edit Goal</string>
+    <string name="delete_goal_confirmation">Are you sure you want to delete this goal?</string>
+    <string name="delete_dialog_confirm">Delete</string>
+    <string name="delete_dialog_cancel">Cancel</string>
+    <string name="add_goal_cd">Add Goal</string>
+    <string name="edit_goal_cd">Edit Goal</string>
+    <string name="delete_goal_cd">Delete Goal</string>
+    <string name="no_goals_message">No goals yet. Tap \'+\' to add one!</string>
+    <string name="amount_label">Amount</string>
+    <string name="category_label">Category</string>
+    <string name="date_label">Date</string>
+    <string name="note_label">Note (Optional)</string>
+    <string name="type_label">Type</string>
+    <string name="income_label">Income</string>
+    <string name="expense_label">Expense</string>
+    <string name="add_transaction_title">Add Transaction</string>
+    <string name="edit_transaction_title">Edit Transaction</string>
+    <string name="select_category_placeholder">Select Category</string>
+    <string name="delete_transaction_confirmation">Are you sure you want to delete this transaction?</string>
+    <string name="report_type_label">Report Type</string>
+    <string name="report_period_label">Report Period</string>
+    <string name="report_generate_button">Generate Report</string>
+    <string name="report_income_vs_expense">Income vs Expense</string>
+    <string name="report_expense_by_category">Expense by Category</string>
+    <string name="report_monthly">Monthly</string>
+    <string name="report_yearly">Yearly</string>
+    <string name="report_custom_range">Custom Range</string>
+    <string name="report_total_income">Total Income:</string>
+    <string name="report_total_expense">Total Expense:</string>
+    <string name="report_net_savings">Net Savings:</string>
+    <string name="report_no_data">No data available for the selected criteria.</string>
+    <string name="report_start_date">Start Date</string>
+    <string name="report_end_date">End Date</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_dark_mode_label">Dark Mode</string>
+    <string name="settings_notifications_label">Enable Notifications</string>
+    <string name="settings_data_management_title">Data Management</string>
+    <string name="settings_export_data_button">Export Data</string>
+    <string name="settings_import_data_button">Import Data</string>
+    <string name="settings_logout_button">Logout</string> <!-- This was for a button in settings screen, can be removed if not used -->
+    <string name="settings_confirm_logout_title">Confirm Logout</string>
+    <string name="settings_confirm_logout_message">Are you sure you want to logout?</string>
+    <string name="settings_confirm_dialog_yes">Yes</string>
+    <string name="settings_confirm_dialog_no">No</string>
 </resources>

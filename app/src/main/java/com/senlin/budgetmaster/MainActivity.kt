@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box // Import Box for centering
 import androidx.compose.material.icons.Icons // Import Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack // Import Back Arrow
+import androidx.compose.material.icons.automirrored.filled.Logout // Import Logout Icon
 import androidx.compose.material.icons.filled.Settings // Import Settings icon for TopAppBar
 import androidx.compose.material3.CircularProgressIndicator // Import loading indicator
 import androidx.compose.material3.ExperimentalMaterial3Api // For TopAppBar
@@ -363,6 +364,7 @@ fun AppTopBar(navController: NavHostController, currentRoute: String?) {
     // Determine the title based on the current route (excluding Reports)
     val title = when (currentRoute) {
         Screen.Dashboard.route -> stringResource(id = R.string.dashboard_title)
+        // Add other screens here
         Screen.Transactions.route -> stringResource(id = R.string.transactions_title)
         Screen.GoalList.route -> stringResource(id = R.string.goals_title)
         Screen.CategoryList.route -> stringResource(id = R.string.categories_title)
@@ -386,6 +388,24 @@ fun AppTopBar(navController: NavHostController, currentRoute: String?) {
             // Add other navigation icons for specific screens if needed later
         },
         actions = {
+            // ViewModel instances to access logout and current user state
+            val authViewModel: AuthViewModel = viewModel(factory = ViewModelFactory.Factory)
+            val mainViewModel: MainViewModel = viewModel(factory = ViewModelFactory.Factory)
+            val mainUiState by mainViewModel.uiState.collectAsState()
+
+            // Show logout icon if user is logged in and not on settings screen (to avoid too many icons there)
+            if (mainUiState.currentUserId != null && currentRoute != Screen.Settings.route) {
+                IconButton(onClick = {
+                    authViewModel.logoutUser()
+                    // Navigation to LoginScreen will be handled by observing mainUiState.currentUserId in BudgetMasterApp
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = stringResource(id = R.string.logout_action_description) // Add this string resource
+                    )
+                }
+            }
+
             // Show settings icon on screens managed by this TopAppBar, except Settings itself
             if (currentRoute != Screen.Settings.route) { // Already excludes Reports route implicitly by the check at the start
                 IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {

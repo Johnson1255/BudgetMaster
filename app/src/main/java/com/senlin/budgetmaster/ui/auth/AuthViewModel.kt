@@ -97,4 +97,22 @@ class AuthViewModel(
     fun resetAuthState() {
         _uiState.value = AuthScreenUiState(authState = AuthState.IDLE, errorMessage = null, currentUserId = null)
     }
+
+    fun logoutUser() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(authState = AuthState.LOADING)
+            try {
+                // Clear the stored user ID. This will trigger observers in MainViewModel
+                // to update its own currentUserId to null, leading to navigation to Login.
+                userSettingsRepository.clearCurrentUserId() // Use the correct method
+                _uiState.value = AuthScreenUiState(authState = AuthState.IDLE) // Reset to idle, navigation handled by MainViewModel
+            } catch (e: Exception) {
+                // Handle potential errors during logout, though clearing preferences is usually safe
+                _uiState.value = _uiState.value.copy(
+                    authState = AuthState.ERROR,
+                    errorMessage = "Logout failed: ${e.message}"
+                )
+            }
+        }
+    }
 }
