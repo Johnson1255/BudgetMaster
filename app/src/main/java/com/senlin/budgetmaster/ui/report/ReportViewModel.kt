@@ -6,9 +6,11 @@ import com.senlin.budgetmaster.data.model.Category // Keep if needed for categor
 import com.senlin.budgetmaster.data.model.Transaction
 import com.senlin.budgetmaster.data.model.TransactionType // Import TransactionType
 import com.senlin.budgetmaster.data.repository.BudgetRepository
+import com.senlin.budgetmaster.data.preferences.UserSettingsRepository // Added
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull // Added
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update // Import update
 import kotlinx.coroutines.launch
@@ -46,7 +48,10 @@ data class ReportUiState(
     val csvContentToShare: String? = null // Add field for CSV export trigger
 )
 
-class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
+class ReportViewModel(
+    private val repository: BudgetRepository,
+    private val userSettingsRepository: UserSettingsRepository // Added
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportUiState())
     val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
@@ -58,14 +63,20 @@ class ReportViewModel(private val repository: BudgetRepository) : ViewModel() {
 
     private fun loadReportData() {
         viewModelScope.launch {
+            val userId = userSettingsRepository.currentUserId.firstOrNull()
+            if (userId == null) {
+                _uiState.update { it.copy(isLoading = false, error = "User not logged in.") }
+                return@launch
+            }
+
             // Get current date range from state
             val currentStartDate = _uiState.value.startDate
             val currentEndDate = _uiState.value.endDate
             _uiState.update { it.copy(isLoading = true, error = null) } // Start loading, clear previous error
             try {
                 // Combine flows to get transactions within the date range and all categories
-                repository.getTransactionsBetweenDates(currentStartDate, currentEndDate) // Fetch based on date range
-                    .combine(repository.getAllCategories()) { transactions, categories -> // Explicit parameter names
+                repository.getTransactionsBetweenDates(userId, currentStartDate, currentEndDate) // Fetch based on date range
+                    .combine(repository.getAllCategories(userId)) { transactions, categories -> // Explicit parameter names
                         Pair(transactions, categories)
                     }
                     .collect { (transactionsResult, categoriesResult) -> // Use distinct names for collected values

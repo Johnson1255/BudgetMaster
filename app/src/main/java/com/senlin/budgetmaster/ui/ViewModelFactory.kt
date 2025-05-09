@@ -51,7 +51,10 @@ object ViewModelFactory {
 
         // Initializer for ReportViewModel
         initializer {
-            ReportViewModel(budgetMasterApplication().container.budgetRepository)
+            ReportViewModel(
+                budgetMasterApplication().container.budgetRepository,
+                budgetMasterApplication().container.userSettingsRepository
+            )
         }
 
         // Initializer for CategoryListViewModel
