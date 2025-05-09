@@ -8,8 +8,8 @@
     <string name="confirm_password_label">Confirm Password</string>
     <string name="don_t_have_an_account_register">"Don't have an account? Register"</string>
     <string name="already_have_an_account_login">"Already have an account? Login"</string>
-    <string name="dashboard_title">Dashboard</string>
-    <string name="transactions_title">Transactions</string>
+    <string name="dashboard_title">Home</string>
+    <string name="transactions_title">Transacts</string>
     <string name="goals_title">Goals</string>
     <string name="reports_title">Reports</string>
     <string name="categories_title">Categories</string>

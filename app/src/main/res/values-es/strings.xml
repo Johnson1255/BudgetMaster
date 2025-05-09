@@ -8,8 +8,8 @@
     <string name="confirm_password_label">Confirmar Contraseña</string>
     <string name="don_t_have_an_account_register">¿No tienes cuenta? Regístrate</string>
     <string name="already_have_an_account_login">¿Ya tienes cuenta? Inicia Sesión</string>
-    <string name="dashboard_title">Panel Principal</string>
-    <string name="transactions_title">Transacciones</string>
+    <string name="dashboard_title">Inicio</string>
+    <string name="transactions_title">Transacts</string>
     <string name="goals_title">Metas</string>
     <string name="reports_title">Informes</string>
     <string name="categories_title">Categorías</string>
