@@ -17,10 +17,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun CategoryEditScreen(
     modifier: Modifier = Modifier,
+    userId: Long?, // Add userId parameter
     viewModel: CategoryEditViewModel = viewModel(factory = ViewModelFactory.Factory),
     navigateBack: () -> Unit,
     onSaveComplete: () -> Unit
 ) {
+    // Initialize the ViewModel with the userId
+    LaunchedEffect(userId) {
+        userId?.let {
+            viewModel.initialize(it)
+        }
+    }
+
     val uiState = viewModel.categoryUiState
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }

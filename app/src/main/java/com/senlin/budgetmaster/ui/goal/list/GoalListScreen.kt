@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect // Add this import
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,8 +29,16 @@ import java.util.Locale
 @Composable
 fun GoalListScreen(
     navController: NavController,
+    userId: Long?, // Add userId parameter
     viewModel: GoalListViewModel = viewModel(factory = ViewModelFactory.Factory)
 ) {
+    // Set the userId in the ViewModel when the screen is composed or userId changes
+    LaunchedEffect(userId) {
+        userId?.let {
+            viewModel.setCurrentUserId(it)
+        }
+    }
+
     val uiState by viewModel.goalListUiState.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) { // Use a Box to contain FAB and content

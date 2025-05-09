@@ -151,7 +151,7 @@ class TransactionEditViewModel(
     fun saveTransaction() {
         val userId = currentUserId // Get the stored userId
         if (userId == null || userId == 0L) {
-            _uiState.update { it.copy(errorMessage = "User not identified.") }
+            _uiState.update { it.copy(errorMessage = "User not identified.", isSaving = false) } // Reset isSaving
             return
         }
 

@@ -274,7 +274,11 @@ fun AppNavHost(
 
         // Use GoalList route and screen
         composable(Screen.GoalList.route) { // Correct composable definition
-            GoalListScreen(navController = navController)
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
+            GoalListScreen(
+                navController = navController,
+                userId = mainUiStateForNav.currentUserId // Pass userId
+            )
         } // End composable(Screen.GoalList.route)
 
         composable(Screen.Reports.route) { // Correct composable definition
@@ -303,11 +307,13 @@ fun AppNavHost(
                 defaultValue = 0L // Default 0L for adding new category (align with ViewModel)
             })
         ) { backStackEntry -> // Receive backStackEntry
-             CategoryEditScreen(
-                 navigateBack = { navController.popBackStack() },
-                 onSaveComplete = { navController.popBackStack() }
-                 // ViewModel will get ID from backStackEntry.arguments or SavedStateHandle
-             )
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
+            CategoryEditScreen(
+                userId = mainUiStateForNav.currentUserId, // Pass userId
+                navigateBack = { navController.popBackStack() },
+                onSaveComplete = { navController.popBackStack() }
+                // ViewModel will get ID from backStackEntry.arguments or SavedStateHandle
+            )
         } // End composable(Screen.CategoryEdit.route)
 
         // Add Goal Edit Screen route with optional argument
