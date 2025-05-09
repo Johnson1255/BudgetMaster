@@ -1,7 +1,9 @@
 package com.senlin.budgetmaster.navigation
 
 sealed class Screen(val route: String) {
-    object Splash : Screen("splash") // Add Splash screen route
+    object Splash : Screen("splash")
+    object Login : Screen("login")
+    object Register : Screen("register")
     object Dashboard : Screen("dashboard")
     object Transactions : Screen("transactions")
     // Updated AddEditTransaction to handle optional ID for adding/editing

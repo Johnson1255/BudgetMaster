@@ -40,6 +40,9 @@ import com.senlin.budgetmaster.ui.report.ReportScreen // Import Report Screen
 import com.senlin.budgetmaster.ui.category.list.CategoryListScreen // Import Category List Screen
 import com.senlin.budgetmaster.ui.category.edit.CategoryEditScreen // Import Category Edit Screen
 import com.senlin.budgetmaster.ui.splash.SplashScreen // Import Splash Screen
+import com.senlin.budgetmaster.ui.auth.AuthViewModel // Import AuthViewModel
+import com.senlin.budgetmaster.ui.auth.LoginScreen // Import LoginScreen
+import com.senlin.budgetmaster.ui.auth.RegisterScreen // Import RegisterScreen
 import com.senlin.budgetmaster.ui.theme.BudgetMasterTheme
 import com.senlin.budgetmaster.ui.transaction.edit.TransactionEditScreen // Import Transaction Edit Screen
 import com.senlin.budgetmaster.ui.transaction.list.TransactionListScreen // Import the screen
@@ -96,25 +99,31 @@ fun BudgetMasterApp(
         val currentBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStackEntry?.destination?.route
 
+        val showBars = currentRoute !in listOf(
+            Screen.Splash.route,
+            Screen.Login.route,
+            Screen.Register.route
+        )
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                if (currentRoute != Screen.Splash.route) {
+                if (showBars) {
                     AppTopBar(navController = navController, currentRoute = currentRoute)
                 }
             },
             bottomBar = {
-                // Only show bottom bar if not on the splash screen
-                if (currentRoute != Screen.Splash.route) {
+                if (showBars) {
                     BottomNavigationBar(navController = navController)
                 }
             }
         ) { innerPadding ->
             // Determine start destination based on ViewModel state
-            val startDestination = when (mainUiState.initialLanguageSet) {
-                true -> Screen.Dashboard.route // Language set, go to Dashboard
-                false -> Screen.Splash.route   // Language not set, go to Splash
-                null -> null // Still loading preference
+            val startDestination = when {
+                mainUiState.isLoading -> null // Still loading preference from MainViewModel
+                mainUiState.initialLanguageSet == false -> Screen.Splash.route
+                mainUiState.currentUserId == null -> Screen.Login.route // Language set, but no user logged in
+                else -> Screen.Dashboard.route // Language set and user logged in
             }
 
             if (startDestination != null) {
@@ -145,32 +154,69 @@ fun AppNavHost(
 ) {
     // Get repository instance here if needed directly, or rely on ViewModels
     val userSettingsRepository = (LocalContext.current.applicationContext as BudgetMasterApplication).container.userSettingsRepository
+    val mainViewModel: MainViewModel = viewModel(factory = ViewModelFactory.Factory) // Get MainViewModel for auth state
+    val authViewModel: AuthViewModel = viewModel(factory = ViewModelFactory.Factory) // Get AuthViewModel
     val scope = rememberCoroutineScope() // Coroutine scope for saving preference
 
     NavHost(
         navController = navController,
         startDestination = startDestination, // Use the determined start destination
         modifier = modifier
-    ) { // Ensure this lambda structure is correct
-        composable(Screen.Splash.route) { // Correct composable definition
+    ) {
+        composable(Screen.Splash.route) {
             SplashScreen(
-                onLanguageSelected = { languageCode -> // Correct lambda usage
-                    scope.launch { // Correct coroutine launch
+                onLanguageSelected = { languageCode ->
+                    scope.launch {
                         userSettingsRepository.saveLanguagePreference(languageCode)
-                        // TODO: Update app locale if necessary (requires more complex setup)
-                        navController.navigate(Screen.Dashboard.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true } // Remove splash from back stack
+                        // After language selection, check auth state to navigate appropriately
+                        val currentUserId = mainViewModel.uiState.value.currentUserId
+                        val nextRoute = if (currentUserId == null) Screen.Login.route else Screen.Dashboard.route
+                        navController.navigate(nextRoute) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
                 }
             )
-        } // End composable(Screen.Splash.route)
+        }
 
-        composable(Screen.Dashboard.route) { // Correct composable definition
-            DashboardScreen(modifier = Modifier) // Use the actual Dashboard screen
-        } // End composable(Screen.Dashboard.route)
+        composable(Screen.Login.route) {
+            LoginScreen(
+                authViewModel = authViewModel,
+                onLoginSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                        launchSingleTop = true // Avoid multiple dashboard instances
+                    }
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                }
+            )
+        }
 
-        composable(Screen.Transactions.route) { // Correct composable definition
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                authViewModel = authViewModel,
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                        popUpTo(Screen.Login.route) { inclusive = true } // Also pop Login if it's in backstack
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(modifier = Modifier)
+        }
+
+        composable(Screen.Transactions.route) {
             TransactionListScreen(navController = navController) // Use the actual screen
         } // End composable(Screen.Transactions.route)
 
