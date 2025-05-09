@@ -321,8 +321,12 @@ fun AppNavHost(
             route = Screen.GoalEdit.routeWithArg, // Use routeWithArg
             arguments = Screen.GoalEdit.arguments // Use arguments from Screen object
         ) { backStackEntry -> // Receive backStackEntry
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
             // Pass navController for back navigation, ViewModel handles ID retrieval
-            GoalEditScreen(navController = navController)
+            GoalEditScreen(
+                navController = navController,
+                userId = mainUiStateForNav.currentUserId // Pass userId
+            )
         } // End composable(Screen.GoalEdit.route)
 
         // Add Transaction Edit Screen route with optional argument
@@ -330,7 +334,9 @@ fun AppNavHost(
             route = Screen.AddEditTransaction.routeWithArg,
             arguments = Screen.AddEditTransaction.arguments
         ) { backStackEntry -> // Receive backStackEntry
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
             TransactionEditScreen(
+                userId = mainUiStateForNav.currentUserId, // Pass userId
                 navigateBack = { navController.popBackStack() }
                  // ViewModel will get the transactionId from SavedStateHandle via backStackEntry
             )

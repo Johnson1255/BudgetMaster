@@ -57,9 +57,17 @@ import java.util.*
 @Composable
 fun TransactionEditScreen(
     navigateBack: () -> Unit,
+    userId: Long?, // Add userId parameter
     modifier: Modifier = Modifier,
     viewModel: TransactionEditViewModel = viewModel(factory = ViewModelFactory.Factory) // Use your factory
 ) {
+    // Initialize the ViewModel with the userId
+    LaunchedEffect(userId) {
+        userId?.let {
+            viewModel.initialize(it)
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsState()
     val currentNavigateBack by rememberUpdatedState(navigateBack) // Ensure latest lambda
 

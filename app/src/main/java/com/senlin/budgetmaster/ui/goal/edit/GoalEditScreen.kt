@@ -17,12 +17,22 @@ import com.senlin.budgetmaster.R // Assuming you have string resources
 import com.senlin.budgetmaster.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 
+import androidx.compose.runtime.LaunchedEffect // Add this import
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalEditScreen(
     navController: NavController,
+    userId: Long?, // Add userId parameter
     viewModel: GoalEditViewModel = viewModel(factory = ViewModelFactory.Factory)
 ) {
+    // Initialize the ViewModel with the userId
+    LaunchedEffect(userId) {
+        userId?.let {
+            viewModel.initialize(it)
+        }
+    }
+
     val coroutineScope = rememberCoroutineScope()
     val goalUiState = viewModel.goalUiState
     val title = if (goalUiState.id == 0L) "Agregar Meta" else "Editar Meta" // Dynamic title
