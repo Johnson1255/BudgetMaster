@@ -33,6 +33,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api // Needed for DatePicker
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.LaunchedEffect // Import LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,9 +69,15 @@ val categoryIcons = mapOf(
 fun TransactionListScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: TransactionListViewModel = viewModel(factory = ViewModelFactory.Factory) // Use correct factory
+    viewModel: TransactionListViewModel = viewModel(factory = ViewModelFactory.Factory), // Use correct factory
+    userId: Long? // Add userId parameter
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Set the userId in the ViewModel when it's available or changes
+    LaunchedEffect(userId) {
+        viewModel.setCurrentUserId(userId)
+    }
 
     Surface(
         modifier = modifier.fillMaxSize(),

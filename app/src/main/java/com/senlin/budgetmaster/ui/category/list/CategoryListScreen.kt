@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect // Import LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,9 +37,15 @@ fun CategoryListScreen(
     modifier: Modifier = Modifier,
     viewModel: CategoryListViewModel = viewModel(factory = ViewModelFactory.Factory),
     onAddCategoryClick: () -> Unit,
-    onEditCategoryClick: (Long) -> Unit // Changed to Long
+    onEditCategoryClick: (Long) -> Unit, // Changed to Long
+    userId: Long? // Add userId parameter
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Set the userId in the ViewModel when it's available or changes
+    LaunchedEffect(userId) {
+        viewModel.setCurrentUserId(userId)
+    }
 
     // The Scaffold is now handled by MainActivity, so we directly use the content
     // and pass the main modifier which might include padding from the main Scaffold.

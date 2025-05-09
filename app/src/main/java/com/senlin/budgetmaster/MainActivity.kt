@@ -264,7 +264,11 @@ fun AppNavHost(
         }
 
         composable(Screen.Transactions.route) {
-            TransactionListScreen(navController = navController) // Use the actual screen
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
+            TransactionListScreen(
+                navController = navController,
+                userId = mainUiStateForNav.currentUserId // Pass userId
+            )
         } // End composable(Screen.Transactions.route)
 
         // Use GoalList route and screen
@@ -278,7 +282,9 @@ fun AppNavHost(
 
         // Replace Placeholder with actual Category List Screen
         composable(Screen.CategoryList.route) { // Correct composable definition
+            val mainUiStateForNav by mainViewModel.uiState.collectAsState() // Collect state for currentUserId
             CategoryListScreen(
+                userId = mainUiStateForNav.currentUserId, // Pass userId
                 onAddCategoryClick = {
                     navController.navigate(Screen.CategoryEdit.createRoute(null)) // Navigate to add screen
                 },
